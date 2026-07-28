@@ -1,0 +1,24 @@
+{# Shared "how do I label an email?" explainer. Gmail labels are second
+   nature to some people and completely invisible to others - especially on
+   mobile, where "Label as" is buried in an overflow menu. #}
+<details class="howto" {% if open %}open{% endif %}>
+  <summary>How do I label an email?</summary>
+  <ul class="howto-list">
+    <li><strong>Gmail on the web:</strong> tick the checkbox next to the email (or open it),
+      then click the <strong>Labels</strong> icon 🏷 in the toolbar and choose
+      “{{ label }}”. Right-clicking the email and picking <strong>Label as</strong> works too.</li>
+    <li><strong>Gmail on your phone:</strong> open the email, tap the
+      <strong>⋮</strong> menu (top right), tap <strong>Label as</strong>, and pick
+      “{{ label }}”.</li>
+    <li><strong>Do it automatically:</strong> open any email from a newsletter you always
+      want on your Kindle, tap <strong>⋮ → Filter messages like this</strong>, then
+      <strong>Create filter</strong> → <strong>Apply the label</strong> “{{ label }}”.
+      Every future issue is labelled for you.</li>
+  </ul>
+  <p class="hint">
+    Only <strong>unread</strong> labelled emails are picked up, so an email you've
+    already opened stays put. Delivered emails move to
+    “{{ sent_label }}”, which appears nested under “{{ label }}” in Gmail's
+    sidebar — handy for browsing everything that's been sent.
+  </p>
+</details>

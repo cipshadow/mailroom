@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Send a URL · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Send articles by URL</h1>
+<div class="card">
+  <p class="muted">
+    Paste one or more public article links — each becomes a clean EPUB with embedded
+    images on your Kindle. Works well with Substack and most blogs.
+  </p>
+  <form method="post" action="{{ url_for('urlsend.send') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="urls">Article URLs (one per line)</label>
+    <textarea id="urls" name="urls" placeholder="https://example.substack.com/p/some-post"></textarea>
+    <label class="inline"><input type="checkbox" name="number"> Number titles in reading order</label>
+    <label class="inline"><input type="checkbox" name="chronological"> Sort by publish date first</label>
+    <br>
+    <button type="submit" {% if job_busy %}disabled{% endif %}>Send to Kindle</button>
+    {% if job_busy %}<p class="hint">A job is running — check the dashboard.</p>{% endif %}
+  </form>
+</div>
+{% endblock %}

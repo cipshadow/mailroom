@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kindle-mailroom"
+version = "0.2.0"
+description = "Send labeled Gmail newsletters and web articles to your Kindle as clean EPUBs."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Kindle Mailroom contributors" }]
+keywords = ["kindle", "gmail", "newsletter", "epub", "send-to-kindle"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Communications :: Email",
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "google-api-python-client>=2.100",
+    "google-auth-httplib2>=0.1.1",
+    "google-auth-oauthlib>=1.1",
+    "httplib2>=0.22",
+    "beautifulsoup4>=4.12",
+    "lxml>=4.9",
+    "ebooklib>=0.18",
+    "Pillow>=10.0",
+    "requests>=2.31",
+    "flask>=3.0",
+    "platformdirs>=4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.4"]
+
+[project.urls]
+Homepage = "https://github.com/cipshadow/mailroom"
+Repository = "https://github.com/cipshadow/mailroom"
+Issues = "https://github.com/cipshadow/mailroom/issues"
+Changelog = "https://github.com/cipshadow/mailroom/blob/main/CHANGELOG.md"
+
+[project.scripts]
+kindle-mailroom = "kindle_mailroom.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"kindle_mailroom.web" = ["templates/*.html", "static/*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

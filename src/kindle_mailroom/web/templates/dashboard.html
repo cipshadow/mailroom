@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="grid-2">
+  <div class="card">
+    <h2 style="margin-top:0">Status</h2>
+    <p>
+      Google:
+      {% if auth_ok %}<span class="badge badge-ok">connected</span> <span class="muted">{{ config.gmail_address }}</span>
+      {% else %}<span class="badge badge-err">not connected</span> <span class="muted">{{ auth_message }}</span>{% endif %}
+    </p>
+    <p>Kindle: <strong>{{ config.kindle_email }}</strong></p>
+    <p>Watching label: <strong>{{ config.source_label }}</strong>
+       {% if config.digest %}<span class="muted">(weekly digests)</span>{% endif %}</p>
+    <p>
+      Schedule:
+      {% if config.schedule_enabled %}
+        <strong>{{ config.schedule_frequency }}</strong> at {{ config.schedule_time }}
+        <span class="muted">(runs while the app is open{% if schedule_due %} — due now{% endif %})</span>
+      {% else %}<span class="muted">off</span>{% endif %}
+    </p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Send to Kindle</h2>
+    <p class="muted">Sends unread emails labeled “{{ config.source_label }}”.</p>
+    <form method="post" action="{{ url_for('dashboard.send_now') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="inline"><input type="radio" name="mode" value="default" checked> Use my default</label>
+      <label class="inline"><input type="radio" name="mode" value="single"> One per email</label>
+      <label class="inline"><input type="radio" name="mode" value="digest"> Weekly digest</label>
+      <br>
+      <button type="submit" {% if job_busy %}disabled{% endif %}>Send now</button>
+    </form>
+    <form method="post" action="{{ url_for('dashboard.send_test') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="secondary" {% if job_busy %}disabled{% endif %}>Send a test document</button>
+    </form>
+  </div>
+</div>
+
+<div class="card" id="job-card" {% if not job %}hidden{% endif %}>
+  <h2 style="margin-top:0">Last job
+    <span id="job-state" class="badge {% if job and job.state == 'error' %}badge-err{% else %}badge-ok{% endif %}">
+      {{ job.state if job else '' }}</span>
+  </h2>
+  <div class="joblog" id="job-log">{% if job %}{{ job.log | join('\n') }}{% endif %}</div>
+  <p class="muted" id="job-result">{{ job.result if job else '' }}</p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Recent deliveries</h2>
+  {% if deliveries %}
+  <table>
+    <tr><th>Status</th><th>Subject</th><th>Sent</th></tr>
+    {% for d in deliveries %}
+    <tr>
+      <td>{{ d.status }}</td>
+      <td class="subject" title="{{ d.subject }}">{{ d.subject }}</td>
+      <td class="muted">{{ (d.sent_at or '')[:16].replace('T', ' ') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><a href="{{ url_for('dashboard.history') }}">Full history →</a></p>
+  {% else %}
+  <p class="muted">Nothing sent yet. Label an email “{{ config.source_label }}” in Gmail and press Send now.</p>
+  {% endif %}
+</div>
+
+<script>
+(function () {
+  var busy = {{ 'true' if job_busy else 'false' }};
+  if (!busy) return;
+  var logEl = document.getElementById('job-log');
+  var stateEl = document.getElementById('job-state');
+  var resultEl = document.getElementById('job-result');
+  document.getElementById('job-card').hidden = false;
+  function poll() {
+    fetch('{{ url_for("dashboard.current_job") }}')
+      .then(function (r) { return r.json(); })
+      .then(function (job) {
+        if (job.state === 'idle') return;
+        stateEl.textContent = job.state;
+        stateEl.className = 'badge ' + (job.state === 'error' ? 'badge-err' : 'badge-ok');
+        logEl.textContent = (job.log || []).join('\n');
+        logEl.scrollTop = logEl.scrollHeight;
+        resultEl.textContent = job.result || '';
+        if (job.state === 'queued' || job.state === 'running') {
+          setTimeout(poll, 2000);
+        } else {
+          setTimeout(function () { window.location.reload(); }, 1200);
+        }
+      })
+      .catch(function () { setTimeout(poll, 4000); });
+  }
+  poll();
+})();
+</script>
+{% endblock %}
