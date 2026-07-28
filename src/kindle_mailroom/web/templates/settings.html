@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Settings · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+<form method="post" action="{{ url_for('settings.save') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  <div class="card">
+    <h2 style="margin-top:0">Delivery</h2>
+    <label for="kindle_email">Kindle email address</label>
+    <input type="email" id="kindle_email" name="kindle_email" value="{{ config.kindle_email }}">
+    <label for="source_label">Gmail label to watch</label>
+    <input type="text" id="source_label" name="source_label" value="{{ config.source_label }}">
+    <p class="hint">Created for you if it doesn't exist yet.</p>
+    <label for="sent_label">Label for delivered emails</label>
+    <input type="text" id="sent_label" name="sent_label" value="{{ config.sent_label }}">
+    <p class="hint">Naming it “{{ config.source_label }}/Sent” nests it under the watched
+      label in Gmail's sidebar, so you can browse everything already delivered.</p>
+    {% with label = config.source_label, sent_label = config.sent_label %}
+      {% include "_label_howto.html" %}
+    {% endwith %}
+    <label for="send_limit">Max emails per run</label>
+    <input type="number" id="send_limit" name="send_limit" min="1" max="50" value="{{ config.send_limit }}">
+    <label class="inline"><input type="checkbox" name="digest" {% if config.digest %}checked{% endif %}>
+      Weekly digests per sender</label>
+    <label class="inline"><input type="checkbox" name="mark_read" {% if config.mark_read %}checked{% endif %}>
+      Mark emails read after sending</label>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Schedule</h2>
+    <p class="muted">Runs while the app is open; if a slot is missed, it catches up at next launch.
+      For fully unattended delivery see <a href="https://github.com/cipshadow/mailroom/blob/main/docs/scheduling.md" target="_blank" rel="noopener">the scheduling guide</a>.</p>
+    <label class="inline"><input type="checkbox" name="schedule_enabled" {% if config.schedule_enabled %}checked{% endif %}>
+      Enable automatic sending</label>
+    <label for="schedule_frequency">Frequency</label>
+    <select id="schedule_frequency" name="schedule_frequency">
+      <option value="daily" {% if config.schedule_frequency == 'daily' %}selected{% endif %}>Daily</option>
+      <option value="weekly" {% if config.schedule_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+    </select>
+    <label for="schedule_weekday">Day (weekly)</label>
+    <select id="schedule_weekday" name="schedule_weekday">
+      {% for day in weekdays %}
+      <option value="{{ loop.index0 }}" {% if config.schedule_weekday == loop.index0 %}selected{% endif %}>{{ day }}</option>
+      {% endfor %}
+    </select>
+    <label for="schedule_time">Time</label>
+    <input type="time" id="schedule_time" name="schedule_time" value="{{ config.schedule_time }}">
+  </div>
+
+  <button type="submit">Save settings</button>
+</form>
+
+<div class="card">
+  <h2 style="margin-top:0">Google account</h2>
+  <p>
+    {% if has_token %}Connected as <strong>{{ config.gmail_address }}</strong>.
+    {% else %}<span class="badge badge-err">not connected</span>{% endif %}
+  </p>
+  <a class="btn secondary" href="{{ url_for('setup.oauth_start') }}">Reconnect Google account</a>
+  <form method="post" action="{{ url_for('settings.forget') }}" style="display:inline"
+        onsubmit="return confirm('Delete the stored Google token and OAuth client from this machine?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="danger">Forget credentials</button>
+  </form>
+  <p class="hint">You can also revoke access at
+    <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>.</p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Data</h2>
+  <p class="muted">Everything (credentials, delivery history, generated EPUBs) lives in:<br>
+    <code>{{ data_dir }}</code></p>
+</div>
+{% endblock %}

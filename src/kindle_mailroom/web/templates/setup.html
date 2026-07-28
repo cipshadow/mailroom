@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Setup · Kindle Mailroom{% endblock %}
+{% set repo = "https://github.com/cipshadow/mailroom" %}
+{% block content %}
+<h1>Welcome to Kindle Mailroom</h1>
+<p class="muted">
+  Three steps, once: give the app its own Google key, sign in, and say where your
+  Kindle lives. Everything stays on this machine.
+</p>
+
+<ol class="wizard-progress">
+  <li class="{{ 'done' if step > 1 else 'active' }}"><span class="num">1</span>Google key</li>
+  <li class="{{ 'done' if step > 2 else ('active' if step == 2 else '') }}"><span class="num">2</span>Connect account</li>
+  <li class="{{ 'done' if step > 3 else ('active' if step == 3 else '') }}"><span class="num">3</span>Your Kindle</li>
+</ol>
+<p class="wizard-counter muted">
+  {% if step > 3 %}Setup complete — you're ready to send.{% else %}Step {{ step }} of 3{% endif %}
+</p>
+
+<div class="card wizard-step {{ 'active' if step == 1 else 'done' }}">
+  <h2>Step 1 — Your Google key {% if step > 1 %}<span class="badge badge-ok">done</span>{% endif %}</h2>
+  {% if step == 1 %}
+  <p>
+    Kindle Mailroom reads and sends mail as <em>you</em>, using a key only you hold.
+    Creating it is free and takes about five minutes. Each link opens the right page
+    in Google Cloud — do them in order:
+  </p>
+  <ol class="steps">
+    <li><a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Create a project</a>
+      — any name will do (e.g. <code>kindle-mailroom</code>). Make sure it's selected before continuing.</li>
+    <li><a href="https://console.cloud.google.com/flows/enableapi?apiid=gmail.googleapis.com" target="_blank" rel="noopener">Enable the Gmail API</a>
+      → click <strong>Enable</strong>.</li>
+    <li><a href="https://console.cloud.google.com/auth/overview" target="_blank" rel="noopener">Set up the consent screen</a>
+      → <strong>Get started</strong>; give it a name, use your own email, and choose
+      audience <strong>External</strong>. Then open
+      <a href="https://console.cloud.google.com/auth/audience" target="_blank" rel="noopener">Audience</a>
+      → <strong>Test users</strong> → <strong>Add users</strong> → add your own Gmail address.</li>
+    <li><a href="https://console.cloud.google.com/auth/clients/create" target="_blank" rel="noopener">Create the client</a>
+      → application type <strong>Desktop app</strong> → <strong>Create</strong> →
+      <strong>Download JSON</strong>. That file is what you paste below.</li>
+  </ol>
+  <p class="hint">
+    Google rearranges this console fairly often. If a link 404s, open
+    <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a>,
+    check your project is selected, and search for “Gmail API”, “Google Auth Platform”
+    or “Credentials”. The
+    <a href="{{ repo }}/blob/main/docs/google-cloud-setup.md" target="_blank" rel="noopener">full written guide</a>
+    has more detail.
+  </p>
+  <details>
+    <summary>What can this app see, and why my own key?</summary>
+    <p class="muted">
+      It asks for exactly two Gmail permissions: <code>gmail.modify</code> (read your mail
+      and change labels, so it can find labelled emails and file them once sent) and
+      <code>gmail.send</code> (email the EPUB to your Kindle). Nothing else, and nothing
+      leaves your machine except those Gmail calls.
+    </p>
+    <p class="muted">
+      There's no server behind this app, so there's no shared key it could use. Your own
+      OAuth client means only you can authorise access to your mail.
+    </p>
+  </details>
+  <form method="post" action="{{ url_for('setup.save_credentials') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="client_secret_file">Upload the downloaded JSON file</label>
+    <input type="file" id="client_secret_file" name="client_secret_file" accept=".json,application/json">
+    <label for="client_secret_json">…or paste its contents</label>
+    <textarea id="client_secret_json" name="client_secret_json" placeholder='{"installed": {"client_id": "…"}}'></textarea>
+    <button type="submit">Save Google key</button>
+  </form>
+  {% else %}
+  <p class="muted">Your Google key is stored securely in your data folder.</p>
+  {% endif %}
+</div>
+
+<div class="card wizard-step {{ 'active' if step == 2 else ('done' if step > 2 else '') }}">
+  <h2>Step 2 — Connect your Google account {% if step > 2 %}<span class="badge badge-ok">done</span>{% endif %}</h2>
+  {% if step == 2 %}
+  <p>
+    You'll see Google's consent screen and a warning that the app isn't verified —
+    that's expected, because it's <em>your</em> app and Google only verifies public ones.
+    Click <strong>Continue</strong>, then allow the two Gmail permissions
+    (<code>gmail.modify</code> and <code>gmail.send</code>).
+  </p>
+  <a class="btn" href="{{ url_for('setup.oauth_start') }}">Connect Google account</a>
+  {% elif step > 2 %}
+  <p class="muted">Connected as <strong>{{ config.gmail_address }}</strong>.</p>
+  {% else %}
+  <p class="muted">Complete step 1 first.</p>
+  {% endif %}
+</div>
+
+<div class="card wizard-step {{ 'active' if step == 3 else ('done' if step > 3 else '') }}">
+  <h2>Step 3 — Where to deliver {% if step > 3 %}<span class="badge badge-ok">done</span>{% endif %}</h2>
+  {% if step == 3 %}
+  <p>
+    Find your Kindle's address at
+    <a href="https://www.amazon.com/hz/mycd/digital-console/alldevices" target="_blank" rel="noopener">Amazon → Manage Your Content &amp; Devices</a>
+    (<strong>Devices</strong> → your Kindle → email). Then, under
+    <strong>Preferences → Personal Document Settings</strong>, add
+    <strong>{{ config.gmail_address or "your Gmail address" }}</strong> to the
+    <em>Approved Personal Document E-mail List</em> — without that, Amazon silently
+    drops everything you send.
+    <a href="{{ repo }}/blob/main/docs/amazon-kindle-setup.md" target="_blank" rel="noopener">Step-by-step guide →</a>
+  </p>
+  <form method="post" action="{{ url_for('setup.save_settings') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="kindle_email">Kindle email address</label>
+    <input type="email" id="kindle_email" name="kindle_email" placeholder="your_name@kindle.com"
+           value="{{ form.kindle_email if form else config.kindle_email }}" required>
+    <p class="hint">Ends in <code>@kindle.com</code> or <code>@free.kindle.com</code>.</p>
+    <label for="source_label">Gmail label to watch</label>
+    <input type="text" id="source_label" name="source_label"
+           value="{{ form.source_label if form else config.source_label }}"
+           placeholder="{{ config.source_label }}">
+    <p class="hint">Created for you if it doesn't exist yet. Label an email with it and
+      Mailroom sends it to your Kindle.</p>
+    {% with label = config.source_label, sent_label = config.sent_label, open = True %}
+      {% include "_label_howto.html" %}
+    {% endwith %}
+    <label class="inline"><input type="checkbox" name="digest"
+      {% if (form.digest if form else config.digest) %}checked{% endif %}>
+      Bundle emails into weekly digests per sender (instead of one document each)</label>
+    <button type="submit">Finish setup</button>
+  </form>
+  {% elif step > 3 %}
+  <p class="muted">
+    Delivering to <strong>{{ config.kindle_email }}</strong>, watching
+    “{{ config.source_label }}”.
+  </p>
+  <a class="btn" href="{{ url_for('dashboard.index') }}">Go to the dashboard →</a>
+  {% else %}
+  <p class="muted">Complete the steps above first.</p>
+  {% endif %}
+</div>
+
+{% if step > 1 %}
+<div class="card">
+  <h2 style="margin-top:0">Something went wrong?</h2>
+  <p class="muted">
+    Starting over deletes the Google key and sign-in stored on this machine, so you can
+    upload a different one. Your Kindle address and label settings are kept.
+  </p>
+  <form method="post" action="{{ url_for('setup.reset') }}"
+        onsubmit="return confirm('Delete the stored Google key and sign-in, and start setup from step 1?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="danger">Start over</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
