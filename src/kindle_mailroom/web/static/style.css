@@ -157,6 +157,13 @@ summary { cursor: pointer; font-weight: 600; }
 .wizard-progress li.done .num::after { content: "✓"; font-size: 0.85rem; }
 .wizard-counter { margin: 0 0 1.25rem; font-size: 0.85rem; }
 
+.quit-form { display: inline; }
+.link-button {
+  display: inline; margin: 0; padding: 0; border: none; background: none;
+  color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer;
+}
+.link-button:hover { filter: none; color: var(--ink); }
+
 /* "How do I label an email?" explainer */
 .howto { margin: 0.75rem 0 1rem; }
 .howto-list { margin: 0.5rem 0; padding-left: 1.1rem; font-size: 0.9rem; }

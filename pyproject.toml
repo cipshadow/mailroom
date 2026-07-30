@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kindle-mailroom"
-version = "0.2.0"
+version = "0.3.0"
 description = "Send labeled Gmail newsletters and web articles to your Kindle as clean EPUBs."
 readme = "README.md"
 license = { text = "MIT" }
