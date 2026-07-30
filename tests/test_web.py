@@ -295,3 +295,82 @@ def test_settings_accepts_free_kindle_address(client, monkeypatch):
         "send_limit": "5", "schedule_time": "08:00",
     }, base_url="http://localhost:8377", follow_redirects=True)
     assert Config.load().kindle_email == "me@free.kindle.com"
+
+
+# --- identity header + shutdown (desktop build needs both) -------------------
+
+class _ImmediateTimer:
+    """Stand-in for threading.Timer that fires synchronously, so tests can
+    observe the effect without a real 0.5s background thread."""
+
+    def __init__(self, interval, function, args=None, kwargs=None):
+        self.function = function
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+
+    def start(self):
+        self.function(*self.args, **self.kwargs)
+
+
+def test_identity_header_present(client):
+    from kindle_mailroom import __version__
+    resp = client.get("/setup", base_url="http://localhost:8377")
+    assert resp.headers.get("X-Kindle-Mailroom") == __version__
+
+
+def test_identity_header_present_on_redirect(client):
+    resp = client.get("/", base_url="http://localhost:8377")
+    assert resp.status_code == 302  # unconfigured -> redirected to /setup
+    assert "X-Kindle-Mailroom" in resp.headers
+
+
+def test_shutdown_requires_csrf(client):
+    resp = client.post("/shutdown", data={}, base_url="http://localhost:8377")
+    assert resp.status_code == 400
+
+
+def test_shutdown_reachable_before_setup(client, monkeypatch):
+    # No config/credentials at all yet -> still reachable, like /setup itself.
+    monkeypatch.setattr("os._exit", lambda code: None)
+    monkeypatch.setattr("threading.Timer", _ImmediateTimer)
+    token = csrf(client)
+    resp = client.post("/shutdown", data={"csrf_token": token}, base_url="http://localhost:8377")
+    assert resp.status_code == 200
+    assert b"shutting down" in resp.data.lower()
+
+
+def test_shutdown_exits_process(client, monkeypatch):
+    complete_setup()
+    exited = []
+    monkeypatch.setattr("os._exit", lambda code: exited.append(code))
+    monkeypatch.setattr("threading.Timer", _ImmediateTimer)
+    token = csrf(client)
+    resp = client.post("/shutdown", data={"csrf_token": token}, base_url="http://localhost:8377")
+    assert resp.status_code == 200
+    assert exited == [0]
+
+
+def test_shutdown_confirms_first_when_job_running(client, app):
+    complete_setup()
+    from kindle_mailroom.web.jobs import Job
+
+    app.extensions["job_runner"].current = Job(kind="send", state="running")
+    token = csrf(client)
+    resp = client.post("/shutdown", data={"csrf_token": token}, base_url="http://localhost:8377")
+    assert resp.status_code == 409
+    assert b"Quit anyway" in resp.data
+
+
+def test_shutdown_force_quits_even_when_job_running(client, app, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.web.jobs import Job
+
+    app.extensions["job_runner"].current = Job(kind="send", state="running")
+    exited = []
+    monkeypatch.setattr("os._exit", lambda code: exited.append(code))
+    monkeypatch.setattr("threading.Timer", _ImmediateTimer)
+    token = csrf(client)
+    resp = client.post("/shutdown", data={"csrf_token": token, "force": "1"},
+                       base_url="http://localhost:8377")
+    assert resp.status_code == 200
+    assert exited == [0]

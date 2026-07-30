@@ -4,6 +4,27 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-07-30
+
+Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
+
+### Added
+- **Desktop apps** for macOS (Apple Silicon and Intel) and Windows, downloadable
+  from [Releases](https://github.com/cipshadow/mailroom/releases/latest).
+  Double-click to launch; the browser opens straight to the setup wizard, same
+  as the command-line version. See
+  [docs/install-desktop.md](docs/install-desktop.md) for first-launch steps
+  (they're unsigned, so the OS warns you once) and where data/logs live.
+- **A Quit control** in the footer of every page — the desktop apps have no
+  terminal to `Ctrl+C`, so this is now the one way to stop the server on any
+  platform. Confirms first if a send is in progress.
+- Opening the app while it's already running now finds the running instance
+  and opens it, instead of failing to bind the port or starting a second copy.
+
+### Changed
+- No behavior change for existing pipx/pip installs — the desktop app is an
+  additional way to run the same code, not a replacement.
+
 ## [0.2.0] — 2026-07-28
 
 Onboarding overhaul plus a batch of device-verified rendering fixes.

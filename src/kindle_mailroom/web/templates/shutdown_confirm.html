@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Quit? · Kindle Mailroom{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>A send is still in progress</h1>
+  <p>Quitting now will stop it partway through. It's safe to wait a moment
+  and try again, or quit anyway if you don't mind an incomplete send.</p>
+  <form method="post" action="{{ url_for('shutdown') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="force" value="1">
+    <button type="submit" class="danger">Quit anyway</button>
+    <a class="btn secondary" href="{{ request.referrer or url_for('dashboard.index') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

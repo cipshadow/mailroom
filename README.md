@@ -26,6 +26,26 @@ Runs entirely on your own machine: no server, no account, no middleman.
 
 ## Quickstart
 
+### Download the app (macOS or Windows — no Python needed)
+
+1. Grab the latest build for your OS from
+   [Releases](https://github.com/cipshadow/mailroom/releases/latest) and
+   double-click it.
+2. It isn't signed with a paid developer certificate (certificates cost
+   money; this is a free, open-source project — see
+   [docs/install-desktop.md](docs/install-desktop.md#why-unsigned)), so your
+   OS will warn you the first time. This is normal:
+   - **macOS:** open it once, then go to **System Settings → Privacy &
+     Security** and click **Open Anyway**.
+   - **Windows:** click **More info**, then **Run anyway** on the SmartScreen
+     prompt.
+3. Your browser opens straight to the setup wizard below.
+
+See [docs/install-desktop.md](docs/install-desktop.md) for where your data
+and logs live, how to quit, and why there's no auto-update.
+
+### Or: the command line (all platforms, including Linux)
+
 Requires **Python 3.10 or newer**.
 
 ```bash
@@ -44,8 +64,8 @@ cd mailroom && pip install -e ".[dev]"
 ```
 </details>
 
-`kindle-mailroom` with no arguments starts the local web app and opens your
-browser to the setup wizard.
+Either way, `kindle-mailroom` with no arguments starts the local web app and
+opens your browser to the setup wizard.
 
 ![The setup wizard](docs/images/setup-wizard.png)
 
@@ -95,6 +115,14 @@ what you point cron or launchd at.
 | `kindle-mailroom --version` | Print the version |
 
 ## FAQ / Troubleshooting
+
+**My OS says the desktop app is from an "unknown publisher."** Expected —
+it isn't signed with a paid developer certificate. See
+[docs/install-desktop.md](docs/install-desktop.md) for the one-time steps
+to open it anyway, and why it's unsigned.
+
+**How do I quit the desktop app?** There's a **Quit** link in the footer of
+every page — it has no terminal to `Ctrl+C`.
 
 **Google shows an "unverified app" warning.** Expected — it's your own app,
 just not submitted for Google's public review. Click Continue.

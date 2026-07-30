@@ -1,0 +1,113 @@
+# Assumes kindle-mailroom/ is the repository root, which it is in the
+# public repo (github.com/cipshadow/mailroom). Builds the free, unsigned
+# desktop apps described in docs/install-desktop.md and attaches them to a
+# GitHub Release. Triggered by pushing a version tag:
+#
+#   git tag v0.3.0 && git push origin v0.3.0
+#
+# No Linux build: pipx already covers Linux users (see README Quickstart).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .[dev]
+      - run: ruff check src tests
+      - run: pytest -q
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: mac-arm64
+          - os: macos-15-intel
+            label: mac-intel
+          - os: windows-latest
+            label: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install . pyinstaller==6.21.0 pyinstaller-hooks-contrib
+
+      - run: pyinstaller packaging/kindle-mailroom.spec --noconfirm
+
+      # A windowed (console=False) build has no stdout for CI to read and,
+      # on Windows, detaches instead of blocking - a bare invocation would
+      # be a vacuous pass. Exit code is the only signal either way.
+      - name: Selftest (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          "./dist/Kindle Mailroom.app/Contents/MacOS/Kindle Mailroom" --selftest
+
+      - name: Selftest (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist/Kindle Mailroom.exe" -ArgumentList "--selftest" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "selftest exited $($p.ExitCode)" }
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ditto -c -k --keepParent "dist/Kindle Mailroom.app" "KindleMailroom-${{ github.ref_name }}-${{ matrix.label }}.zip"
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Copy-Item "dist/Kindle Mailroom.exe" "KindleMailroom-${{ github.ref_name }}-windows.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: KindleMailroom-*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: Extract changelog section for this tag
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="## [$version]" '
+            $0 ~ "^## \\[" { if (found) exit; if (index($0, ver) == 1) found=1; next }
+            found { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "No changelog section found for $version; using tag name only." > /tmp/release-notes.md
+          fi
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" assets/* \
+            --title "Kindle Mailroom $GITHUB_REF_NAME" \
+            --notes-file /tmp/release-notes.md

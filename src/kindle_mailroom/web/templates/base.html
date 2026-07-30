@@ -29,7 +29,12 @@
   </main>
   <footer class="wrap muted">
     Local-only · nothing leaves your machine except Gmail API calls ·
-    <a href="https://github.com/cipshadow/mailroom" target="_blank" rel="noopener">source</a>
+    <a href="https://github.com/cipshadow/mailroom" target="_blank" rel="noopener">source</a> ·
+    <form method="post" action="{{ url_for('shutdown') }}" class="quit-form"
+          onsubmit="return confirm('Quit Kindle Mailroom?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="link-button">Quit</button>
+    </form>
   </footer>
 </body>
 </html>
