@@ -37,6 +37,15 @@ Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
   replacement.
 
 ### Fixed
+- **Digest mode grouped every newsletter on a shared sending platform into
+  one combined weekly digest**, regardless of who wrote it — every Substack
+  author sends from a `*.substack.com`-family address, so they all collapsed
+  into one "Substack" document. Digests are now grouped by the sender's
+  display name instead of their email domain.
+- Digest titles were `[sender] [ISO date]`, paired with a filename that
+  repeated the date again (`2026-07-30 - Substack 2026-07-30.epub`) — visibly
+  duplicated. Digest titles (and the email subject) are now
+  `[blog name] - dd/m digest`, e.g. `Lenny's Newsletter - 30/7 digest`.
 - Google sign-in could fail with `invalid_grant: Missing code verifier` on
   every connection attempt. The OAuth callback rebuilt the PKCE flow from
   scratch instead of reusing the code verifier generated at the start of
