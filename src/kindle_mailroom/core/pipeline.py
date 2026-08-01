@@ -31,13 +31,18 @@ def send_labelled(
     dry_run: bool = False,
     resend: bool = False,
     limit: int | None = None,
-    unread_only: bool = True,
+    unread_only: bool | None = None,
     progress: ProgressFn = print,
 ) -> SendReport:
-    """Send emails carrying the source label to the Kindle address."""
+    """Send emails carrying the source label to the Kindle address.
+
+    limit/unread_only fall back to the config values when None; a limit of 0
+    means "everything labelled"."""
     use_digest = config.digest if digest is None else digest
+    effective_limit = config.send_limit if limit is None else limit
+    effective_unread = config.unread_only if unread_only is None else unread_only
     messages = gc.fetch_labelled_messages(
-        service, config.source_label, limit or config.send_limit, unread_only
+        service, config.source_label, effective_limit, effective_unread
     )
     progress(f"Found {len(messages)} message(s) in \"{config.source_label}\"")
     if use_digest:

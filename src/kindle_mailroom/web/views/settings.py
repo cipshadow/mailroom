@@ -42,8 +42,12 @@ def save():
     config.sent_label = (request.form.get("sent_label") or config.sent_label).strip() or DEFAULT_SENT_LABEL
     config.digest = bool(request.form.get("digest"))
     config.mark_read = bool(request.form.get("mark_read"))
+    config.unread_only = bool(request.form.get("unread_only"))
     try:
-        config.send_limit = max(1, min(50, int(request.form.get("send_limit") or config.send_limit)))
+        # 0 = no limit; the form always posts a value so "or" would misread 0
+        raw_limit = request.form.get("send_limit")
+        if raw_limit is not None and raw_limit.strip() != "":
+            config.send_limit = max(0, min(500, int(raw_limit)))
     except ValueError:
         pass
 

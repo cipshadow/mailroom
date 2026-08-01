@@ -76,8 +76,11 @@ def write_private(path: Path, text: str) -> None:
 # Defaults for fresh installs; a saved config.json always wins in Config.load,
 # so renaming these never touches existing users. The sent label nests under
 # the source label in Gmail's sidebar via the "/" separator.
-DEFAULT_SOURCE_LABEL = "Send to Kindle"
-DEFAULT_SENT_LABEL = "Send to Kindle/Sent"
+# Both nest under a shared "Mailroom" parent in Gmail's sidebar. Labels are
+# matched by exact name via the Gmail API (never search queries), so the
+# emoji are safe.
+DEFAULT_SOURCE_LABEL = "Mailroom/Send next 📤"
+DEFAULT_SENT_LABEL = "Mailroom/Sent ✅"
 
 # Amazon issues both plain and Wi-Fi-only delivery addresses.
 KINDLE_ADDRESS_DOMAINS = ("@kindle.com", "@free.kindle.com")
@@ -94,7 +97,8 @@ class Config:
     source_label: str = DEFAULT_SOURCE_LABEL
     sent_label: str = DEFAULT_SENT_LABEL
     digest: bool = False
-    send_limit: int = 10
+    send_limit: int = 0  # 0 = no limit: send everything labelled
+    unread_only: bool = False  # opt-in: skip labelled emails already read
     send_delay: float = 2.0
     mark_read: bool = False
     schedule_enabled: bool = False

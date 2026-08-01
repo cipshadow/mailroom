@@ -15,17 +15,21 @@
     <p class="hint">Created for you if it doesn't exist yet.</p>
     <label for="sent_label">Label for delivered emails</label>
     <input type="text" id="sent_label" name="sent_label" value="{{ config.sent_label }}">
-    <p class="hint">Naming it “{{ config.source_label }}/Sent” nests it under the watched
-      label in Gmail's sidebar, so you can browse everything already delivered.</p>
+    <p class="hint">Sharing a parent with the watched label (e.g. “Mailroom/…”) groups
+      both under one heading in Gmail's sidebar, so you can browse everything
+      already delivered.</p>
     {% with label = config.source_label, sent_label = config.sent_label %}
       {% include "_label_howto.html" %}
     {% endwith %}
     <label for="send_limit">Max emails per run</label>
-    <input type="number" id="send_limit" name="send_limit" min="1" max="50" value="{{ config.send_limit }}">
+    <input type="number" id="send_limit" name="send_limit" min="0" max="500" value="{{ config.send_limit }}">
+    <p class="hint">0 means no limit — every labelled email is sent.</p>
     <label class="inline"><input type="checkbox" name="digest" {% if config.digest %}checked{% endif %}>
       Weekly digests per sender</label>
     <label class="inline"><input type="checkbox" name="mark_read" {% if config.mark_read %}checked{% endif %}>
       Mark emails read after sending</label>
+    <label class="inline"><input type="checkbox" name="unread_only" {% if config.unread_only %}checked{% endif %}>
+      Only send unread emails (skip labelled emails you've already opened)</label>
   </div>
 
   <div class="card">

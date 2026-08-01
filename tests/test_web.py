@@ -147,7 +147,17 @@ def test_settings_save(client):
 # --- setup wizard: step 3 (delivery settings) ---------------------------------
 
 def seed_credentials():
-    """Client secret + token on disk, but no Kindle address yet -> step 3."""
+    """Client secret + token + a captured Gmail address, but no Kindle
+    address yet -> step 3."""
+    seed_token_only()
+    config = Config.load()
+    config.gmail_address = "me@gmail.com"
+    config.save()
+
+
+def seed_token_only():
+    """Client secret + token on disk, but no Gmail address captured yet -
+    e.g. sign-in succeeded but reading the profile email failed."""
     from kindle_mailroom import config as cfg
 
     cfg.write_private(cfg.client_secret_path(), json.dumps(
@@ -178,6 +188,19 @@ def csrf(client):
     with client.session_transaction() as session:
         session["csrf_token"] = "tok"
     return "tok"
+
+
+def test_wizard_returns_to_step2_when_gmail_address_missing(client):
+    # Regression test: a token can exist while gmail_address is blank (the
+    # post-OAuth profile read failed, e.g. Gmail API not yet enabled). The
+    # wizard used to mark step 2 done anyway, stranding the user at step 3
+    # forever - is_complete needs gmail_address, and nothing on step 3 can
+    # set it. It must drop back to step 2 so they can reconnect.
+    seed_token_only()
+    resp = client.get("/setup", base_url="http://localhost:8377")
+    body = resp.data.decode()
+    assert "Step 2 of 3" in body
+    assert "Connect Google account" in body  # the retry button is offered
 
 
 def test_wizard_step3_shows_counter_and_label_howto(client):
@@ -341,6 +364,28 @@ def test_settings_accepts_free_kindle_address(client, monkeypatch):
         "send_limit": "5", "schedule_time": "08:00",
     }, base_url="http://localhost:8377", follow_redirects=True)
     assert Config.load().kindle_email == "me@free.kindle.com"
+
+
+def test_settings_send_limit_zero_and_unread_toggle(client, monkeypatch):
+    complete_setup()
+    no_network_labels(monkeypatch)
+    token = csrf(client)
+    # 0 must be stored as 0 (no limit), not fall back to the previous value
+    client.post("/settings", data={
+        "csrf_token": token, "send_limit": "0", "unread_only": "on",
+        "schedule_time": "08:00",
+    }, base_url="http://localhost:8377", follow_redirects=True)
+    config = Config.load()
+    assert config.send_limit == 0
+    assert config.unread_only is True
+
+    # absent checkbox turns the toggle back off; out-of-range limit is clamped
+    client.post("/settings", data={
+        "csrf_token": token, "send_limit": "9999", "schedule_time": "08:00",
+    }, base_url="http://localhost:8377", follow_redirects=True)
+    config = Config.load()
+    assert config.send_limit == 500
+    assert config.unread_only is False
 
 
 # --- identity header + shutdown (desktop build needs both) -------------------

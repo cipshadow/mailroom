@@ -10,7 +10,7 @@ Runs entirely on your own machine: no server, no account, no middleman.
 
 ## Features
 
-- **Gmail → Kindle**: label any email (default label: `Send to Kindle`) and
+- **Gmail → Kindle**: label any email (default label: `Mailroom/Send next 📤`) and
   Kindle Mailroom converts it to a clean EPUB — strips ads, tracking pixels,
   and layout cruft, sizes images the way the sender intended — and emails it
   to your Kindle.
@@ -81,16 +81,17 @@ It walks you through two one-time things:
 
 ## Daily use
 
-Label an email `Send to Kindle` in Gmail, press **Send now**, and it lands on
-your Kindle within a few minutes. The wizard shows you how to apply a label on
-web and mobile, and how to have Gmail label a newsletter automatically.
+Label an email `Mailroom/Send next 📤` in Gmail, press **Send now**, and it
+lands on your Kindle within a few minutes. The wizard shows you how to apply a
+label on web and mobile, and how to have Gmail label a newsletter automatically.
 
 ![Labelling help in the wizard](docs/images/label-howto.png)
 
-- Only **unread** labelled emails are picked up, so something you've already
-  opened stays put.
-- Delivered emails move to `Send to Kindle/Sent`, which appears nested under
-  `Send to Kindle` in Gmail's sidebar — handy for browsing what's been sent.
+- Every labelled email is sent, read or unread — the label is the signal.
+  (Prefer skipping already-opened mail? Turn on unread-only in **Settings**.)
+- Delivered emails move to `Mailroom/Sent ✅`, right next to the watched label
+  under the `Mailroom` heading in Gmail's sidebar — so `Send next` always shows
+  exactly what's still queued, and `Sent` is your delivery archive.
 - **Web articles**: go to **Send a URL**, paste one or more links (one per line).
 - **Automatically**: turn on a schedule in **Settings**, or see
   [docs/scheduling.md](docs/scheduling.md) for cron/launchd/Task Scheduler.
@@ -106,7 +107,7 @@ what you point cron or launchd at.
 | `kindle-mailroom web [--port N] [--no-browser]` | Start the web app explicitly |
 | `kindle-mailroom send` | Send labelled emails now, using your saved settings |
 | `kindle-mailroom send --digest` / `--no-digest` | Override digest mode for one run |
-| `kindle-mailroom send --limit N --dry-run` | Cap how many, or build without sending |
+| `kindle-mailroom send --limit N --dry-run` | Cap how many (0 = all), or build without sending |
 | `kindle-mailroom send --resend --include-read` | Re-send delivered mail / include read mail |
 | `kindle-mailroom send-url URL... [-n] [-c]` | Send article URLs (number them, sort by date) |
 | `kindle-mailroom list` | Show delivery history |

@@ -55,3 +55,25 @@ def test_substantial_messages_are_not_skipped(monkeypatch):
     )
     assert skipped is False
     assert calls == [], "a message over the word floor is left alone here"
+
+
+def test_send_labelled_follows_config_for_limit_and_unread(monkeypatch):
+    # limit=None / unread_only=None must fall back to the config values -
+    # the web UI and scheduler call send_labelled without either argument.
+    seen = {}
+
+    def fake_fetch(service, label, limit, unread_only):
+        seen["limit"], seen["unread_only"] = limit, unread_only
+        return []
+
+    monkeypatch.setattr(pipeline.gc, "fetch_labelled_messages", fake_fetch)
+    config = Config()
+    config.send_limit = 0
+    config.unread_only = True
+    pipeline.send_labelled(None, None, config, progress=lambda _: None)
+    assert seen == {"limit": 0, "unread_only": True}
+
+    # explicit arguments still win over config
+    pipeline.send_labelled(None, None, config, limit=3, unread_only=False,
+                           progress=lambda _: None)
+    assert seen == {"limit": 3, "unread_only": False}
