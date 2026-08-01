@@ -72,6 +72,10 @@ def oauth_start():
         prompt="consent",  # always get a refresh token, even on re-connect
     )
     session["oauth_state"] = state
+    # authorization_url() is what generates the PKCE code_verifier (lazily,
+    # on the Flow instance) — must round-trip it to the callback the same
+    # way as state, or Google's token exchange fails with invalid_grant.
+    session["oauth_code_verifier"] = flow.code_verifier
     return redirect(authorization_url)
 
 
@@ -84,6 +88,7 @@ def oauth_callback():
     if not state or request.args.get("state") != state:
         flash("OAuth state mismatch — please try connecting again.", "error")
         return redirect(url_for("setup.start"))
+    code_verifier = session.pop("oauth_code_verifier", None)
 
     # The redirect lands on http://127.0.0.1, which oauthlib treats as
     # insecure transport even though it never leaves this machine. Loopback
@@ -94,7 +99,7 @@ def oauth_callback():
     os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
 
     try:
-        flow = auth.build_web_flow(url_for("setup.oauth_callback", _external=True))
+        flow = auth.build_web_flow(url_for("setup.oauth_callback", _external=True), code_verifier=code_verifier)
         flow.fetch_token(authorization_response=request.url)
     except Exception as exc:
         flash(f"Could not complete Google sign-in: {exc}", "error")
@@ -103,17 +108,26 @@ def oauth_callback():
     creds = flow.credentials
     auth.save_token(creds)
 
-    # Record the authenticated address — it becomes the From address.
+    # Record the authenticated address - it becomes the From address, and
+    # Config.is_complete gates the whole app on it. Nothing else writes it,
+    # so silently leaving it blank strands the user on /setup with a success
+    # message and no way out but reconnecting.
     try:
         gmail_address = get_profile_email(build_service(creds))
-    except Exception:
-        gmail_address = ""
-    config = Config.load()
-    if gmail_address:
-        config.gmail_address = gmail_address
-        config.save()
+    except Exception as exc:
+        current_app.logger.warning("Could not read Gmail address after sign-in", exc_info=True)
+        flash(
+            "Signed in, but we couldn't read your Gmail address "
+            f"({exc}). Press Connect Google again to finish.",
+            "error",
+        )
+        return redirect(url_for("setup.start"))
 
-    flash(f"Connected as {gmail_address or 'your Google account'}.", "ok")
+    config = Config.load()
+    config.gmail_address = gmail_address
+    config.save()
+
+    flash(f"Connected as {gmail_address}.", "ok")
     return redirect(url_for("setup.start"))
 
 

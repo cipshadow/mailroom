@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import io
+import ipaddress
 import mimetypes
 import re
+import socket
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -17,6 +20,75 @@ ICON_MAX_PX = 72
 MAX_IMAGE_DIM = 1200
 
 USER_AGENT = "Mozilla/5.0"
+
+# Redirects are followed by hand so each hop can be re-checked; a CDN that
+# needs more than this many is not worth an image.
+MAX_REDIRECTS = 3
+
+
+def is_public_url(url: str) -> bool:
+    """True if url is plain http(s) pointing at a public address.
+
+    <img src> comes from newsletter HTML and fetched pages, i.e. from whoever
+    wrote them. Without this check a crafted image tag makes this process GET
+    cloud metadata (169.254.169.254), loopback services, or LAN admin pages
+    from inside the user's network.
+
+    Every resolved address has to pass, not just the first, so a hostname
+    with one public and one internal A record can't sneak through. This is
+    still resolve-then-connect: requests re-resolves, so a determined
+    attacker controlling DNS could flip the answer in between. Pinning the
+    checked IP would close that, at the cost of breaking SNI/vhosts.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return False
+    host = parsed.hostname
+    if not host:
+        return False
+    try:
+        infos = socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)
+    except OSError:
+        return False
+    if not infos:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            return False
+    return True
+
+
+def get_if_public(url: str) -> requests.Response | None:
+    """GET url, validating the target before every hop. None if it's blocked."""
+    for _ in range(MAX_REDIRECTS + 1):
+        if not is_public_url(url):
+            return None
+        resp = requests.get(
+            url,
+            headers={"User-Agent": USER_AGENT},
+            timeout=10,
+            allow_redirects=False,
+        )
+        if resp.is_redirect or resp.is_permanent_redirect:
+            location = resp.headers.get("location")
+            if not location:
+                return None
+            url = urljoin(url, location)
+            continue
+        resp.raise_for_status()
+        return resp
+    return None
 
 
 def url_width_hint(url: str) -> int | None:
@@ -69,8 +141,9 @@ def fetch_image(
         return None
 
     try:
-        resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
-        resp.raise_for_status()
+        resp = get_if_public(url)
+        if resp is None:
+            return None
         data = resp.content
         content_type = (resp.headers.get("content-type") or "image/jpeg").split(";")[0].strip()
     except Exception:

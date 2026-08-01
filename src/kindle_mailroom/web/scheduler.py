@@ -60,9 +60,14 @@ def run_scheduled_send(job) -> str:
         report = pipeline.send_labelled(service, store, config, progress=job.log_line)
     finally:
         store.close()
-    config = Config.load()
-    config.last_scheduled_run = datetime.now().date().isoformat()
-    config.save()
+        # Record the attempt whether or not it succeeded. is_due() keys off
+        # this date, so leaving it unset after a failure re-queues the job
+        # every CHECK_INTERVAL_SECONDS for the rest of the day - roughly a
+        # thousand failing Gmail calls instead of one. The failure itself is
+        # still surfaced through the job log.
+        latest = Config.load()
+        latest.last_scheduled_run = datetime.now().date().isoformat()
+        latest.save()
     return report.summary()
 
 

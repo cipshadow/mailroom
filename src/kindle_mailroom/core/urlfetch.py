@@ -9,6 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from .images import fetch_image, parse_declared_length
+from .sanitize import sanitize_html
 
 HTTP_HEADERS = {
     "User-Agent": (
@@ -49,8 +50,20 @@ def fetch_article(url: str) -> tuple[str, str]:
     for tag in (body_el or soup).find_all(["nav", "footer", "aside", "script", "style", "button", "form"]):
         tag.decompose()
 
-    html_body = str(body_el) if body_el else "<p>No content extracted.</p>"
-    return title, html_body
+    if body_el is None:
+        return title, "<p>No content extracted.</p>"
+
+    # Lazy-loaded images keep the real URL in data-src; promote it before
+    # sanitizing, which keeps only src on <img>. Without this, sanitising
+    # would silently drop every lazy image the old raw path used to embed.
+    for img in body_el.find_all("img"):
+        if not img.get("src") and img.get("data-src"):
+            img["src"] = img["data-src"]
+
+    # The page is third-party content, so it gets the same attribute
+    # whitelist as Gmail mode - otherwise onclick/iframe/svg from a fetched
+    # article ride straight into the EPUB.
+    return title, sanitize_html(str(body_el))
 
 
 def download_images(html_body: str, page_url: str) -> tuple[str, list[tuple[str, str, bytes]]]:

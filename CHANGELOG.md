@@ -25,6 +25,13 @@ Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
 - No behavior change for existing pipx/pip installs — the desktop app is an
   additional way to run the same code, not a replacement.
 
+### Fixed
+- Google sign-in could fail with `invalid_grant: Missing code verifier` on
+  every connection attempt. The OAuth callback rebuilt the PKCE flow from
+  scratch instead of reusing the code verifier generated at the start of
+  sign-in; it's now carried through the session like the OAuth state already
+  was.
+
 ## [0.2.0] — 2026-07-28
 
 Onboarding overhaul plus a batch of device-verified rendering fixes.

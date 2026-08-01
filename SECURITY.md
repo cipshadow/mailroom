@@ -4,9 +4,12 @@
 
 Kindle Mailroom is a **local, single-user tool**. It runs a web server bound to
 `127.0.0.1` only — it is never reachable from other machines. There is no
-hosted service, no account system, and no telemetry: nothing leaves your
-machine except the Gmail API calls you initiate and the image downloads needed
-to build EPUBs.
+hosted service, no account system, and no telemetry. Nothing leaves your
+machine except:
+
+- the Gmail API calls you initiate;
+- fetches of any article URL you paste into **Send a URL**;
+- the image downloads needed to build each EPUB.
 
 ## What is stored, and where
 
@@ -19,6 +22,9 @@ Everything lives in your OS user data directory (shown on the Settings page):
 | `config.json` | Gmail and Kindle addresses, label names, delivery options, schedule, port, app secret key | `0600` |
 | `mailroom.sqlite3` | Delivery history (subjects, message IDs) | user-only dir |
 | `epubs/` | Generated EPUB files | user-only dir |
+| `mailroom.log` | Run log, including email subjects (desktop builds send all output here) | user-only dir |
+
+Setting `KINDLE_MAILROOM_DATA_DIR` relocates all of the above.
 
 Nothing secret is ever written into the repository directory, and the app
 never logs token or client-secret contents.

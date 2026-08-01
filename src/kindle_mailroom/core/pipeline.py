@@ -47,14 +47,18 @@ def send_labelled(
                             dry_run=dry_run, resend=resend, progress=progress)
 
 
-def _skip_thin(service, store: Store, config: Config, message: GmailMessage,
-               progress: ProgressFn) -> bool:
+def _skip_thin(service, config: Config, message: GmailMessage,
+               progress: ProgressFn, *, dry_run: bool) -> bool:
     word_count = count_words(message.html_body)
     if word_count >= MIN_WORDS:
         return False
     progress(f"skip (thin, {word_count} words): {message.subject}")
-    gc.move_to_sent_label(service, message.message_id, config.source_label,
-                          config.sent_label, config.mark_read)
+    # Relabelling is a mutation of the user's mailbox, so it has to respect
+    # dry_run - otherwise `send --dry-run` silently strips the source label
+    # and marks thin messages read, which is the opposite of a no-op.
+    if not dry_run:
+        gc.move_to_sent_label(service, message.message_id, config.source_label,
+                              config.sent_label, config.mark_read)
     return True
 
 
@@ -67,7 +71,7 @@ def _send_one_by_one(service, store: Store, config: Config, messages: list[Gmail
             report.skipped += 1
             continue
 
-        if _skip_thin(service, store, config, message, progress):
+        if _skip_thin(service, config, message, progress, dry_run=dry_run):
             report.skipped += 1
             continue
 
@@ -97,7 +101,7 @@ def _send_digest_mode(service, store: Store, config: Config, messages: list[Gmai
 
     filtered = []
     for message in messages:
-        if _skip_thin(service, store, config, message, progress):
+        if _skip_thin(service, config, message, progress, dry_run=dry_run):
             report.skipped += 1
             continue
         filtered.append(message)

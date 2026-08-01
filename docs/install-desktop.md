@@ -33,10 +33,11 @@ put any app, or leave in Downloads.
 - **Your data** (config, Google sign-in, delivery history, generated EPUBs)
   lives in the OS-standard per-user data directory, same as the command-line
   version — shown on the Settings page.
-- **Logs** live alongside your data, as `mailroom.log` (kept to the last two
-  runs' worth; older logs are dropped, not accumulated forever). Since a
-  windowed app has no terminal, this is where to look if something goes
-  wrong — everything that would print to a terminal goes here instead.
+- **Logs** live alongside your data, as `mailroom.log`. Once it passes about
+  1 MB it's rolled over to `mailroom.log.1`, so at most two files ever exist.
+  Since a windowed app has no terminal, this is where to look if something
+  goes wrong — everything that would print to a terminal goes here instead,
+  including the subjects of the emails being sent.
 
 ## Quitting
 
@@ -50,8 +51,9 @@ copy — it just brings you back to the running one.
 ## No auto-update
 
 The app never phones home to check for a new version, on purpose — that's
-the same "nothing leaves your machine except Gmail API calls" promise the
-command-line version makes. Check
+the same "nothing leaves your machine except the fetches you ask for"
+promise the command-line version makes (see [SECURITY.md](../SECURITY.md)
+for the exact list). Check
 [Releases](https://github.com/cipshadow/mailroom/releases) yourself
 occasionally; a new download replaces the old one directly (your data isn't
 touched).
