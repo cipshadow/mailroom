@@ -255,6 +255,52 @@ def test_setup_reset_clears_credentials(client):
     assert not auth.has_token()
 
 
+def test_oauth_pkce_code_verifier_round_trips(client, monkeypatch):
+    # Regression test: oauth_callback used to build a fresh Flow object with
+    # no code_verifier, so Google's real token exchange failed with
+    # "invalid_grant: Missing code verifier" even though everything else
+    # about the flow was correct. The verifier must round-trip via the
+    # session the same way `state` does.
+    cfg.write_private(cfg.client_secret_path(), json.dumps(
+        {"installed": {"client_id": "id", "client_secret": "secret",
+                       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                       "token_uri": "https://oauth2.googleapis.com/token"}}))
+
+    resp = client.get("/setup/oauth", base_url="http://localhost:8377")
+    assert resp.status_code == 302
+    with client.session_transaction() as session:
+        state = session["oauth_state"]
+        code_verifier = session["oauth_code_verifier"]
+    assert code_verifier and len(code_verifier) >= 43  # RFC 7636 minimum
+
+    import time
+
+    from requests_oauthlib import OAuth2Session
+
+    captured = {}
+
+    def fake_fetch_token(self, token_url, **kwargs):
+        captured["code_verifier"] = kwargs.get("code_verifier")
+        self.token = {"access_token": "x", "refresh_token": "r", "expires_at": time.time() + 3600}
+        self.scope = auth.SCOPES
+        return self.token
+
+    monkeypatch.setattr(OAuth2Session, "fetch_token", fake_fetch_token)
+    monkeypatch.setattr("kindle_mailroom.web.views.setup.get_profile_email", lambda service: "me@gmail.com")
+    monkeypatch.setattr("kindle_mailroom.web.views.setup.build_service", lambda creds: object())
+
+    resp = client.get(
+        f"/oauth2/callback?state={state}&code=fakecode",
+        base_url="http://localhost:8377", follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    # The verifier used at token-exchange time must be the exact one
+    # generated (and persisted) during the authorization step.
+    assert captured["code_verifier"] == code_verifier
+    assert auth.has_token()
+    assert b"Connected as me@gmail.com" in resp.data
+
+
 # --- settings ----------------------------------------------------------------
 
 def test_settings_label_change_creates_gmail_label(client, monkeypatch):

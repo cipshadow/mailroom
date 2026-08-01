@@ -44,7 +44,8 @@ It requests exactly two Gmail scopes, and nothing else:
 | `gmail.send` | Email the generated EPUB to your Kindle address. |
 
 Everything runs on your machine; nothing is sent anywhere except those Gmail
-API calls and the image downloads needed to build each EPUB.
+API calls, any article URL you paste into **Send a URL**, and the image
+downloads needed to build each EPUB.
 
 ## Why "Testing" mode shows a warning
 

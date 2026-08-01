@@ -16,6 +16,26 @@ from bs4 import BeautifulSoup, Comment
 _INVISIBLE_CHARS = "[​-‏­  ﻿ ]"
 
 
+# Schemes we're willing to keep on <a href>. Everything here is untrusted
+# sender/page markup, and these EPUBs don't only go to Kindle - they sit in
+# epub_dir() and get opened in browser-backed readers (Calibre's viewer,
+# Readium), where a javascript: or data: link runs in the reader's context.
+_SAFE_HREF = re.compile(r"^(?:https?:|mailto:|#|/|\.{0,2}/)", re.I)
+
+
+def safe_href(value: str | None) -> str | None:
+    """Return value if it uses a scheme we allow on <a href>, else None.
+
+    Matching ignores control characters and whitespace because browsers strip
+    those before resolving a scheme, so "java\\x00script:alert(1)" would
+    otherwise slip past a naive prefix check.
+    """
+    if not value:
+        return None
+    probe = re.sub(r"[\x00-\x20\x7f]", "", value)
+    return value.strip() if _SAFE_HREF.match(probe) else None
+
+
 def style_length(style: str | None, prop: str) -> str | None:
     """Pull a pixel length out of an inline style, e.g. style="width: 14px"
     -> "14". Returns None for percentages, "auto", or a missing property:
@@ -76,8 +96,10 @@ def sanitize_html(raw_html: str) -> str:
     # strip attributes, keeping only what Kindle needs
     for tag in body.find_all(True):
         allowed_attrs = {}
-        if tag.name == "a" and tag.get("href"):
-            allowed_attrs["href"] = tag["href"]
+        if tag.name == "a":
+            href = safe_href(tag.get("href"))
+            if href:
+                allowed_attrs["href"] = href
         if tag.name == "img" and tag.get("src"):
             allowed_attrs["src"] = tag["src"]
             allowed_attrs["alt"] = tag.get("alt", "")

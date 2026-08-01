@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from kindle_mailroom.core.sanitize import count_words, sanitize_html
+from kindle_mailroom.core.sanitize import count_words, safe_href, sanitize_html
 
 FIXTURE = (Path(__file__).parent / "fixtures" / "newsletter.html").read_text()
 
@@ -110,3 +110,42 @@ def test_style_length_parsing():
     assert style_length(None, "width") is None
     # must not match max-width when asked for width
     assert style_length("max-width: 600px", "width") is None
+
+
+def test_safe_href_allows_ordinary_links():
+    assert safe_href("https://example.com/post") == "https://example.com/post"
+    assert safe_href("http://example.com") == "http://example.com"
+    assert safe_href("mailto:me@example.com") == "mailto:me@example.com"
+    assert safe_href("#section") == "#section"
+    assert safe_href("/relative/path") == "/relative/path"
+    assert safe_href("./sibling") == "./sibling"
+    assert safe_href("../parent") == "../parent"
+
+
+def test_safe_href_rejects_active_schemes():
+    # These EPUBs get opened in browser-backed readers, where a javascript:
+    # or data: href executes in the reader's context.
+    assert safe_href("javascript:alert(1)") is None
+    assert safe_href("data:text/html,<script>alert(1)</script>") is None
+    assert safe_href("vbscript:msgbox(1)") is None
+    assert safe_href("") is None
+    assert safe_href(None) is None
+
+
+def test_safe_href_ignores_obfuscating_control_characters():
+    # Browsers strip these before resolving the scheme, so a naive prefix
+    # check would let them through.
+    assert safe_href("java\x00script:alert(1)") is None
+    assert safe_href("  javascript:alert(1)") is None
+    assert safe_href("java\tscript:alert(1)") is None
+    assert safe_href("JaVaScRiPt:alert(1)") is None
+
+
+def test_sanitize_drops_javascript_href_keeps_the_text():
+    out = sanitize_html(
+        '<body><p><a href="javascript:alert(1)">Read more</a> '
+        '<a href="https://example.com/x">Real link</a></p></body>'
+    )
+    assert "javascript:" not in out
+    assert "Read more" in out  # link text survives, only the href goes
+    assert 'href="https://example.com/x"' in out

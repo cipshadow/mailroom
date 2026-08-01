@@ -96,14 +96,22 @@ def load_credentials() -> Credentials:
     raise NotAuthenticatedError("Stored Google token is invalid. Reconnect your Google account.")
 
 
-def build_web_flow(redirect_uri: str) -> Flow:
-    """Flow for the web UI: our Flask server receives the loopback redirect."""
+def build_web_flow(redirect_uri: str, code_verifier: str | None = None) -> Flow:
+    """Flow for the web UI: our Flask server receives the loopback redirect.
+
+    `code_verifier` must be the same one generated during the authorization
+    step (PKCE) — a fresh Flow object generates a new, mismatched one, which
+    Google's token endpoint rejects with `invalid_grant: Missing code
+    verifier`. The caller is responsible for round-tripping it (e.g. via the
+    session) between the two requests, the same way `state` is round-tripped.
+    """
     if not has_client_secret():
         raise NotAuthenticatedError("No OAuth client configured yet.")
     return Flow.from_client_secrets_file(
         str(cfg.client_secret_path()),
         scopes=SCOPES,
         redirect_uri=redirect_uri,
+        code_verifier=code_verifier,
     )
 
 

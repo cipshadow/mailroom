@@ -1,7 +1,17 @@
 import io
 
+import pytest
+
 from kindle_mailroom.core import images
 from kindle_mailroom.core.images import fetch_image, parse_declared_length, url_width_hint
+
+
+@pytest.fixture(autouse=True)
+def allow_fake_hosts(monkeypatch):
+    """These tests exercise decode/resize behaviour against made-up hosts like
+    "https://x/chart.jpg", which no longer survive the SSRF guard's DNS
+    lookup. Tests that care about the guard patch it back themselves."""
+    monkeypatch.setattr(images, "is_public_url", lambda url: True)
 
 
 def _jpeg_bytes(width, height):
@@ -16,6 +26,8 @@ class _FakeResponse:
     def __init__(self, content, content_type="image/jpeg"):
         self.content = content
         self.headers = {"content-type": content_type}
+        self.is_redirect = False
+        self.is_permanent_redirect = False
 
     def raise_for_status(self):
         pass

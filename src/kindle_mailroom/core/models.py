@@ -45,14 +45,35 @@ def get_week_start(date_str: str) -> str:
         return "0000-00-00"
 
 
+# Multi-label public suffixes we see on newsletter senders. Anything ending in
+# one of these needs the label *before* it, not the last label.
+_MULTI_LABEL_SUFFIXES = (".co.uk", ".com.au", ".co.nz", ".co.jp", ".org.uk", ".ac.uk")
+
+
 def extract_sender_domain(sender: str) -> str:
-    """Extract a display name from 'Name <email@domain.com>' format."""
+    """Display name for a sender, from 'Name <email@domain>' format.
+
+    Returns the registrable label - "stratechery" from stratechery.com,
+    "ghost" from ghost.io - title-cased. Naively taking the last label
+    yielded the TLD for anything that wasn't .com or .co.uk ("Io", "Org",
+    "To"), which in digest mode collapsed every .org sender in a week into a
+    single digest titled "Org".
+    """
     match = re.search(r"<([^@]+@[^>]+)>", sender)
-    if match:
-        email = match.group(1)
-        domain = email.split("@")[-1]
-        return domain.replace(".com", "").replace(".co.uk", "").split(".")[-1].title()
-    return "Unknown"
+    if not match:
+        return "Unknown"
+
+    domain = match.group(1).split("@")[-1].strip().lower().rstrip(".")
+    for suffix in _MULTI_LABEL_SUFFIXES:
+        if domain.endswith(suffix):
+            domain = domain[: -len(suffix)]
+            break
+    else:
+        domain = domain.rpartition(".")[0] or domain
+
+    # Whatever's left, the registrable label is its last part.
+    label = domain.rpartition(".")[2]
+    return label.title() if label else "Unknown"
 
 
 def group_messages_by_sender_week(messages: list[GmailMessage]) -> dict[tuple[str, str], list[GmailMessage]]:
