@@ -5,9 +5,10 @@ respect dry_run. It previously did not, meaning `send --dry-run` stripped
 the source label and marked thin messages read.
 """
 
-from kindle_mailroom.config import Config
+from kindle_mailroom.config import Config, db_path
 from kindle_mailroom.core import pipeline
 from kindle_mailroom.core.models import GmailMessage
+from kindle_mailroom.core.store import Store
 
 THIN_BODY = "<p>Only a few words here.</p>"
 FAT_BODY = "<p>" + " ".join(["word"] * (pipeline.MIN_WORDS + 50)) + "</p>"
@@ -77,3 +78,46 @@ def test_send_labelled_follows_config_for_limit_and_unread(monkeypatch):
     pipeline.send_labelled(None, None, config, limit=3, unread_only=False,
                            progress=lambda _: None)
     assert seen == {"limit": 3, "unread_only": False}
+
+
+def _digest_message(sender, subject, msg_id):
+    return GmailMessage(
+        message_id=msg_id, thread_id=msg_id, subject=subject, sender=sender,
+        date="2026-07-06T10:00:00", html_body=FAT_BODY,
+    )
+
+
+def test_digest_mode_groups_by_sender_not_domain(monkeypatch, tmp_path):
+    # The reported bug, exercised through the real pipeline entry point:
+    # two different Substack authors must produce two separate digests,
+    # each titled "[name] - dd/m digest", not one combined "Substack" digest.
+    messages = [
+        _digest_message("Lenny's Newsletter <lenny@substack.com>", "Post A", "m1"),
+        _digest_message("Platformer <casey@substack.com>", "Post B", "m2"),
+    ]
+    monkeypatch.setattr(pipeline.gc, "move_to_sent_label", lambda *a, **kw: None)
+
+    sent_titles = []
+
+    def fake_send(service, epub_path, title, from_address, kindle_email):
+        sent_titles.append(title)
+        return "gmail-id"
+
+    monkeypatch.setattr(pipeline.gc, "send_epub_to_kindle", fake_send)
+
+    config = Config()
+    config.digest = True
+    store = Store(db_path())
+    try:
+        report = pipeline._send_digest_mode(
+            None, store, config, messages, dry_run=False, resend=False,
+            progress=lambda _: None,
+        )
+    finally:
+        store.close()
+
+    assert report.sent == 2, "one digest per author, not one combined digest"
+    assert sorted(sent_titles) == [
+        "Lenny's Newsletter - 06/7 digest",
+        "Platformer - 06/7 digest",
+    ]

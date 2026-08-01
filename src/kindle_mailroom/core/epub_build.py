@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 
 from .images import fetch_image, parse_declared_length
-from .models import GmailMessage
+from .models import GmailMessage, digest_title
 from .sanitize import count_words
 
 # Each image is checked against the *remaining* budget rather than a sticky
@@ -169,21 +169,24 @@ def message_to_epub(message: GmailMessage, out_dir: Path, resend: bool = False,
     return out_path
 
 
-def messages_to_digest_epub(messages: list[GmailMessage], sender_domain: str, week_start: str,
+def messages_to_digest_epub(messages: list[GmailMessage], sender_name: str, week_start: str,
                             out_dir: Path, progress: ProgressFn = _noop) -> Path:
     """Create a digest EPUB from multiple messages with a table of contents."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    title = f"{sender_domain} {week_start}"
+    title = digest_title(sender_name, week_start)
+    # The ISO date prefix keeps files chronologically sortable on disk; it's
+    # not what's shown as the book title or the email subject, so it can't
+    # produce the "date - name - date" duplication the visible title used to.
     filename = f"{week_start} - {make_safe_filename(title, 'Digest')}.epub"
     out_path = out_dir / filename
 
     def build(with_images: bool) -> epub.EpubBook:
         css = _make_css()
         book = epub.EpubBook()
-        book.set_identifier(f"digest-{sender_domain}-{week_start}")
+        book.set_identifier(f"digest-{sender_name}-{week_start}")
         book.set_title(title)
         book.set_language("en")
-        book.add_author(sender_domain or "Digest")
+        book.add_author(sender_name or "Digest")
         book.add_item(css)
 
         # Image budget shared across all articles. fetch_image drops decorative

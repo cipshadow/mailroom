@@ -12,7 +12,7 @@ from typing import Callable
 from ..config import Config, epub_dir
 from . import gmail_client as gc
 from .epub_build import message_to_epub, messages_to_digest_epub, url_to_epub
-from .models import GmailMessage, SendReport, group_messages_by_sender_week
+from .models import GmailMessage, SendReport, digest_title, group_messages_by_sender_week
 from .sanitize import count_words
 from .store import Store
 from .urlfetch import download_images, fetch_article, get_article_date
@@ -113,31 +113,34 @@ def _send_digest_mode(service, store: Store, config: Config, messages: list[Gmai
 
     groups = group_messages_by_sender_week(filtered)
 
-    for (sender_domain, week_start), group_messages in sorted(groups.items()):
-        digest_id = f"{sender_domain}-{week_start}"
+    for (sender_name, week_start), group_messages in sorted(groups.items()):
+        digest_id = f"{sender_name}-{week_start}"
+        title = digest_title(sender_name, week_start)
 
         already = store.digest_already_sent([m.message_id for m in group_messages])
         if already and not resend:
-            progress(f"skip (digest already sent) {sender_domain} {week_start}")
+            progress(f"skip (digest already sent) {title}")
             report.skipped += len(group_messages)
             continue
 
-        epub_path = messages_to_digest_epub(group_messages, sender_domain, week_start,
+        epub_path = messages_to_digest_epub(group_messages, sender_name, week_start,
                                             epub_dir(), progress=progress)
         if dry_run:
-            progress(f"[dry-run] {sender_domain} {week_start} -> {epub_path.name}")
+            progress(f"[dry-run] {title} -> {epub_path.name}")
             continue
 
-        gc.send_epub_to_kindle(service, epub_path, f"{sender_domain} {week_start}",
+        gc.send_epub_to_kindle(service, epub_path, title,
                                config.gmail_address, config.kindle_email)
         for msg in group_messages:
+            # sender_domain is the store's historical column name; it now
+            # holds the sender display name used to group the digest.
             store.record_sent(msg, epub_path, config.kindle_email,
-                              digest_id=digest_id, sender_domain=sender_domain)
+                              digest_id=digest_id, sender_domain=sender_name)
             gc.move_to_sent_label(service, msg.message_id, config.source_label,
                                   config.sent_label, config.mark_read)
 
         report.sent += 1
-        progress(f"sent digest {sender_domain} {week_start} ({len(group_messages)} articles)")
+        progress(f"sent digest {title} ({len(group_messages)} articles)")
         time.sleep(config.send_delay)
 
     progress(f"done: {report.summary()} (digests)")
