@@ -14,10 +14,18 @@ bp = Blueprint("setup", __name__)
 
 
 def _step(config: Config) -> int:
-    """1-3 = current wizard step; 4 = setup finished (all steps done)."""
+    """1-3 = current wizard step; 4 = setup finished (all steps done).
+
+    Step 2 needs both a token *and* a captured gmail_address — a token
+    alone isn't "connected". If reading the profile email failed (e.g. the
+    Gmail API wasn't enabled yet), the token is still saved but the address
+    stays blank, and config.is_complete can then never become true. Without
+    this check the wizard would show step 2 as done and strand the user at
+    step 3 with no way back to retry the connection.
+    """
     if not auth.has_client_secret():
         return 1
-    if not auth.has_token():
+    if not auth.has_token() or not config.gmail_address:
         return 2
     if not config.is_complete:
         return 3

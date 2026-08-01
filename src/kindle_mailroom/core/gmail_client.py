@@ -111,17 +111,28 @@ def fetch_labelled_messages(
     limit: int,
     unread_only: bool,
 ) -> list[GmailMessage]:
+    """limit 0 (or negative) means no limit: page through every labelled message."""
     label_id = get_label_id(service, source_label)
     label_ids = [label_id]
     if unread_only:
         label_ids.append("UNREAD")
-    results = (
-        service.users()
-        .messages()
-        .list(userId="me", labelIds=label_ids, maxResults=limit)
-        .execute()
-    )
-    refs = results.get("messages", [])
+    refs: list[dict] = []
+    page_token = None
+    while True:
+        page_size = min(500, limit - len(refs)) if limit > 0 else 500
+        results = (
+            service.users()
+            .messages()
+            .list(userId="me", labelIds=label_ids, maxResults=page_size,
+                  pageToken=page_token)
+            .execute()
+        )
+        refs.extend(results.get("messages", []))
+        page_token = results.get("nextPageToken")
+        if not page_token or (limit > 0 and len(refs) >= limit):
+            break
+    if limit > 0:
+        refs = refs[:limit]
     messages = []
 
     for ref in refs:

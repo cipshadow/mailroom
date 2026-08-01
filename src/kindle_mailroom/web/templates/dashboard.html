@@ -25,7 +25,7 @@
 
   <div class="card">
     <h2 style="margin-top:0">Send to Kindle</h2>
-    <p class="muted">Sends unread emails labeled “{{ config.source_label }}”.</p>
+    <p class="muted">Sends {% if config.unread_only %}unread {% endif %}emails labeled “{{ config.source_label }}”.</p>
     <form method="post" action="{{ url_for('dashboard.send_now') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <label class="inline"><input type="radio" name="mode" value="default" checked> Use my default</label>

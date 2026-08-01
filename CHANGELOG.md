@@ -22,8 +22,19 @@ Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
   and opens it, instead of failing to bind the port or starting a second copy.
 
 ### Changed
-- No behavior change for existing pipx/pip installs — the desktop app is an
-  additional way to run the same code, not a replacement.
+- **New default labels for fresh installs**: `Mailroom/Send next 📤` (watched)
+  and `Mailroom/Sent ✅` (delivered), both nested under one `Mailroom` heading
+  in Gmail's sidebar. Existing installs keep whatever labels they configured.
+- **Every labelled email is now sent, read or unread.** Previously only unread
+  mail was picked up, which silently skipped anything you'd already opened.
+  The old behavior is available as an "Only send unread emails" toggle in
+  Settings. `send --include-read` still forces read mail for one run.
+- **No send limit by default.** "Max emails per run" now defaults to 0
+  (no limit — pages through everything labelled); set a number in Settings to
+  cap it. Existing installs keep their saved limit.
+- No behavior change for existing pipx/pip installs from the desktop-app work
+  itself — the desktop app is an additional way to run the same code, not a
+  replacement.
 
 ### Fixed
 - Google sign-in could fail with `invalid_grant: Missing code verifier` on
@@ -31,6 +42,10 @@ Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
   scratch instead of reusing the code verifier generated at the start of
   sign-in; it's now carried through the session like the OAuth state already
   was.
+- If sign-in succeeded but reading your Gmail address failed (e.g. the Gmail
+  API wasn't enabled yet), the wizard marked "Connect account" as done and
+  stranded you on step 3 with no way to retry the connection. It now returns
+  to step 2 so you can reconnect.
 
 ## [0.2.0] — 2026-07-28
 

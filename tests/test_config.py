@@ -13,6 +13,8 @@ def test_defaults_and_roundtrip():
     config = Config.load()
     assert config.source_label == cfg.DEFAULT_SOURCE_LABEL
     assert config.sent_label == cfg.DEFAULT_SENT_LABEL
+    assert config.send_limit == 0  # no limit: send everything labelled
+    assert config.unread_only is False  # the label is the signal, not read state
     assert not config.is_complete
     config.gmail_address = "me@gmail.com"
     config.kindle_email = "me@kindle.com"

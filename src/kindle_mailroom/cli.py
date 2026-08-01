@@ -93,7 +93,8 @@ def command_send(args) -> int:
             dry_run=args.dry_run,
             resend=args.resend,
             limit=args.limit,
-            unread_only=not args.include_read,
+            # None = follow the config setting; the flag force-includes read mail
+            unread_only=False if args.include_read else None,
         )
     except LabelNotFoundError as exc:
         raise SystemExit(str(exc))
@@ -155,6 +156,14 @@ def command_mark_read(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # The default labels contain emoji; a Windows console redirected to a
+    # cp1252 pipe would otherwise crash on the first progress line naming them.
+    for stream in (sys.stdout, sys.stderr):
+        if stream is not None and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(errors="replace")
+            except (OSError, ValueError):
+                pass
     parser = argparse.ArgumentParser(
         prog="kindle-mailroom",
         description="Send labeled Gmail newsletters and web articles to your Kindle.",
@@ -170,7 +179,8 @@ def main(argv: list[str] | None = None) -> int:
     send_parser = subparsers.add_parser("send", help="Send labeled Gmail messages to Kindle (headless)")
     send_parser.add_argument("--digest", action="store_true", help="Force digest mode for this run")
     send_parser.add_argument("--no-digest", action="store_true", help="Force one-per-email mode for this run")
-    send_parser.add_argument("--limit", type=int, default=None)
+    send_parser.add_argument("--limit", type=int, default=None,
+                             help="Max emails this run (0 = no limit; default: config setting)")
     send_parser.add_argument("--resend", action="store_true", help="Resend even if already delivered")
     send_parser.add_argument("--dry-run", action="store_true")
     send_parser.add_argument("--include-read", action="store_true",
