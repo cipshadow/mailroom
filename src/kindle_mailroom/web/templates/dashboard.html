@@ -32,6 +32,10 @@
       <label class="inline"><input type="radio" name="mode" value="single"> One per email</label>
       <label class="inline"><input type="radio" name="mode" value="digest"> Weekly digest</label>
       <br>
+      <label class="inline"><input type="checkbox" name="dry_run">
+        Build without sending (dry run) — writes the EPUB to your data folder
+        instead of emailing it, so you can preview it first</label>
+      <br>
       <button type="submit" {% if job_busy %}disabled{% endif %}>Send now</button>
     </form>
     <form method="post" action="{{ url_for('dashboard.send_test') }}">

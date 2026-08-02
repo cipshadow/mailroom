@@ -36,6 +36,27 @@ Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
   itself — the desktop app is an additional way to run the same code, not a
   replacement.
 
+### Added
+- **A "Build without sending (dry run)" checkbox on the dashboard.** The
+  underlying dry-run support already existed (and was already reachable from
+  the CLI), but nothing in the web UI could set it — there was no way to
+  preview a send from the app itself without actually emailing your Kindle.
+  It writes the EPUB to `<data folder>/epubs` without sending it; the
+  Settings page now documents that path and points to Kindle Previewer
+  (Amazon's free desktop app) for checking layout across device sizes
+  before anything goes out for real.
+
+### Changed
+- **Digest articles now force a page break before each one**, and end with
+  a small "∿∿∿" mark rather than running straight into the next article's
+  text. Each article's byline also now says "Article 2 of 5" so its
+  position in the digest is clear without checking the table of contents.
+  The break is declared both ways (`page-break-before` and the modern
+  `break-before: page`) since Send-to-Kindle's server-side KFX conversion
+  has a history of not reliably honoring the older property alone — this
+  couldn't be verified against a real device or Kindle Previewer from here,
+  so if it's still not breaking for you, say so.
+
 ### Fixed
 - **Digest mode grouped every newsletter on a shared sending platform into
   one combined weekly digest**, regardless of who wrote it — every Substack

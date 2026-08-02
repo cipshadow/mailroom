@@ -181,6 +181,30 @@ def test_digest_no_duplicate_title(tmp_path, fake_image):
     assert article.count("<h2") == 0  # no injected chapter heading
 
 
+def test_digest_articles_have_page_break_and_position_counter(tmp_path, fake_image):
+    # Without an explicit break, several short articles back to back can
+    # look like one continuous document once Kindle's converter has run
+    # over the EPUB - the "page-break-before: always" on .chapter and the
+    # end-of-article mark are both defensive against that.
+    messages = [make_message("a", "First Post"), make_message("b", "Second Post"),
+               make_message("c", "Third Post")]
+    path = messages_to_digest_epub(messages, "Newsletter", "2026-07-06", tmp_path)
+    zf = read_epub(path)
+    names = zf.namelist()
+
+    css_names = [n for n in names if n.endswith(".css")]
+    css = zf.read(css_names[0]).decode()
+    assert "page-break-before: always" in css
+    assert ".chapter" in css
+
+    for idx, position in enumerate(["1 of 3", "2 of 3", "3 of 3"]):
+        article = zf.read([n for n in names if n.endswith(f"article_{idx:02d}.xhtml")][0]).decode()
+        assert 'class="chapter"' in article
+        assert f"Article {position}" in article
+        assert "article-end" in article  # end-of-article mark present
+        assert "∿" in article  # the sine-wave end mark itself
+
+
 def test_embedded_image_gets_explicit_dimensions(tmp_path, fake_image):
     # Regression guard: Kindle's converter stretches an <img> with no
     # width/height to fill the column - the "magnified icon" bug. The

@@ -324,6 +324,40 @@ def test_oauth_pkce_code_verifier_round_trips(client, monkeypatch):
     assert b"Connected as me@gmail.com" in resp.data
 
 
+# --- dashboard: dry run -------------------------------------------------------
+
+def test_send_work_passes_dry_run_through_to_pipeline(monkeypatch):
+    # The dashboard's "Build without sending" checkbox is only useful if its
+    # value actually reaches pipeline.send_labelled - this was previously
+    # impossible from the web UI at all: the route read request.form["dry_run"]
+    # but no template exposed a checkbox with that name.
+    from kindle_mailroom.core.models import SendReport
+    from kindle_mailroom.web.views import dashboard
+
+    captured = {}
+
+    def fake_send_labelled(service, store, config, *, digest, dry_run, progress):
+        captured["dry_run"] = dry_run
+        captured["digest"] = digest
+        return SendReport(dry_run=dry_run)
+
+    monkeypatch.setattr(dashboard.auth, "load_credentials", lambda: object())
+    monkeypatch.setattr(dashboard, "build_service", lambda creds: object())
+    monkeypatch.setattr(dashboard.pipeline, "send_labelled", fake_send_labelled)
+
+    class FakeJob:
+        def log_line(self, _msg):
+            pass
+
+    work = dashboard._send_work(digest_override=None, dry_run=True)
+    work(FakeJob())
+    assert captured == {"dry_run": True, "digest": None}
+
+    work = dashboard._send_work(digest_override=True, dry_run=False)
+    work(FakeJob())
+    assert captured == {"dry_run": False, "digest": True}
+
+
 # --- settings ----------------------------------------------------------------
 
 def test_settings_label_change_creates_gmail_label(client, monkeypatch):
