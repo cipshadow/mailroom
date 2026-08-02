@@ -76,5 +76,13 @@
   <h2 style="margin-top:0">Data</h2>
   <p class="muted">Everything (credentials, delivery history, generated EPUBs) lives in:<br>
     <code>{{ data_dir }}</code></p>
+  <p class="hint">Generated EPUBs land in <code>{{ data_dir }}/epubs</code> — including ones
+    built with "dry run" on the dashboard, which writes the file without emailing it. Open
+    one directly with <a href="https://www.amazon.com/Kindle-Previewer/b?node=21381691011" target="_blank" rel="noopener">Kindle Previewer</a>
+    (Amazon's free desktop app — it runs the same conversion Send-to-Kindle uses, and lets
+    you switch between device profiles: Scribe, Paperwhite, Oasis, basic Kindle, Fire) to
+    check layout without emailing anything. Since EPUB is reflowable, a page break lands at
+    the same article boundary regardless of screen size — only how much fits <em>within</em>
+    each page changes.</p>
 </div>
 {% endblock %}

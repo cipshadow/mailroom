@@ -82,7 +82,7 @@ def _send_one_by_one(service, store: Store, config: Config, messages: list[Gmail
 
         epub_path = message_to_epub(message, epub_dir(), resend=resend, progress=progress)
         if dry_run:
-            progress(f"[dry-run] {message.subject} -> {epub_path.name}")
+            progress(f"[dry-run] {message.subject} -> {epub_path}")
             continue
 
         send_title = f"[resend] {message.subject}" if resend else message.subject
@@ -126,7 +126,7 @@ def _send_digest_mode(service, store: Store, config: Config, messages: list[Gmai
         epub_path = messages_to_digest_epub(group_messages, sender_name, week_start,
                                             epub_dir(), progress=progress)
         if dry_run:
-            progress(f"[dry-run] {title} -> {epub_path.name}")
+            progress(f"[dry-run] {title} -> {epub_path}")
             continue
 
         gc.send_epub_to_kindle(service, epub_path, title,

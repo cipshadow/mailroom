@@ -35,6 +35,13 @@ blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; }
 pre { white-space: pre-wrap; font-family: monospace; }
 .toc { font-size: 0.95em; margin: 2em 0; }
 .toc-entry { margin: 0.3em 0; margin-left: 1em; }
+/* Send-to-Kindle converts server-side to KFX, and that converter has a
+   history of not reliably honoring page-break-before alone - break-before
+   is the modern CSS Fragmentation equivalent some renderers check instead.
+   Both, redundantly, rather than picking one and hoping. */
+.chapter { page-break-before: always; break-before: page; }
+.article-end { text-align: center; color: #999; font-size: 1.4em;
+  letter-spacing: 0.4em; margin: 3em 0 0; }
 """
 
 ProgressFn = Callable[[str], None]
@@ -218,15 +225,24 @@ def messages_to_digest_epub(messages: list[GmailMessage], sender_name: str, week
             # title, so repeating the Gmail subject line above it just puts
             # it twice. The TOC entry (built from message.subject below) is
             # what readers use to navigate between articles in the digest.
+            #
+            # .chapter forces page-break-before, and the end mark plus
+            # trailing whitespace signal where an article ends - without
+            # them, several short articles in a row can look like one long
+            # unbroken document once Kindle's converter has run over it.
             meta = (
                 f"<div class='meta'>From: {html.escape(message.sender)}<br/>"
-                f"Date: {html.escape(message.date[:10] if message.date else '-')}</div>"
+                f"Date: {html.escape(message.date[:10] if message.date else '-')}<br/>"
+                f"Article {msg_idx + 1} of {len(messages)}</div>"
             )
+            end_mark = "<p class='article-end'>&#8767;&#8767;&#8767;</p>"
             chapter = epub.EpubHtml(
                 title=message.subject or f"Article {msg_idx + 1}",
                 file_name=f"article_{msg_idx:02d}.xhtml",
             )
-            chapter.content = (meta + body_html).encode("utf-8")
+            chapter.content = (
+                f"<div class='chapter'>{meta}{body_html}{end_mark}</div>"
+            ).encode("utf-8")
             chapter.add_item(css)
             book.add_item(chapter)
             chapters.append(chapter)
