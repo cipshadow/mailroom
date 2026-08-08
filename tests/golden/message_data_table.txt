@@ -1,0 +1,136 @@
+FILES:
+  EPUB/content.opf
+  EPUB/message.xhtml
+  EPUB/nav.xhtml
+  EPUB/style/default.css
+  EPUB/toc.ncx
+  META-INF/container.xml
+  mimetype
+
+=== EPUB/content.opf ===
+<package xmlns="http://www.idpf.org/2007/opf" prefix="rendition: http://www.idpf.org/vocab/rendition/#" unique-identifier="id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <meta property="dcterms:modified">REDACTED</meta>
+    <meta content="Ebook-lib 0.20.0" name="generator"/>
+    <dc:identifier id="id">gmail-m1</dc:identifier>
+    <dc:title>Quarterly Numbers</dc:title>
+    <dc:language>en</dc:language>
+    <dc:creator id="creator">Writer &lt;writer@newsletter.com&gt;</dc:creator>
+  </metadata>
+  <manifest>
+    <item href="style/default.css" id="style" media-type="text/css"/>
+    <item href="message.xhtml" id="chapter_0" media-type="application/xhtml+xml"/>
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+    <item href="nav.xhtml" id="nav" media-type="application/xhtml+xml" properties="nav"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="chapter_0"/>
+  </spine>
+</package>
+
+=== EPUB/message.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" xml:lang="en">
+  <head>
+    <title>Quarterly Numbers</title>
+    <link href="style/default.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div class="meta">From: Writer &lt;writer@newsletter.com&gt;<br/>Date: 2026-07-10T08:00:00+00:00<br/>Gmail ID: m1</div>
+    <div>
+      <h1>Quarterly Numbers</h1>
+      <p>This table has real headers (&lt;th&gt; with scope) and must survive
+    sanitize_html's layout-table unwrapping intact - it is genuine tabular
+    data, not a layout hack.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>Revenue</th>
+            <th>Growth</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Q1</td>
+            <td>$1.2M</td>
+            <td>+4%</td>
+          </tr>
+          <tr>
+            <td>Q2</td>
+            <td>$1.4M</td>
+            <td>+16%</td>
+          </tr>
+          <tr>
+            <td>Q3</td>
+            <td>$1.3M</td>
+            <td>-7%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
+
+=== EPUB/nav.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">
+  <head>
+    <title>Quarterly Numbers</title>
+  </head>
+  <body>
+    <nav id="id" role="doc-toc" epub:type="toc">
+      <h2>Quarterly Numbers</h2>
+      <ol>
+        <li>
+          <a href="message.xhtml">Quarterly Numbers</a>
+        </li>
+      </ol>
+    </nav>
+  </body>
+</html>
+
+=== EPUB/style/default.css ===
+
+body { font-family: Georgia, serif; line-height: 1.55; margin: 1em; }
+h1 { font-size: 1.35em; margin-bottom: 0.2em; }
+h2 { font-size: 1.15em; margin-top: 1.5em; margin-bottom: 0.3em; border-top: 1px solid #ddd; padding-top: 1em; }
+.meta { color: #555; font-size: 0.85em; margin-bottom: 1.5em; }
+img { max-width: 100%; height: auto; }
+blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; }
+pre { white-space: pre-wrap; font-family: monospace; }
+.toc { font-size: 0.95em; margin: 2em 0; }
+.toc-entry { margin: 0.3em 0; margin-left: 1em; }
+/* Send-to-Kindle converts server-side to KFX, and that converter has a
+   history of not reliably honoring page-break-before alone - break-before
+   is the modern CSS Fragmentation equivalent some renderers check instead.
+   Both, redundantly, rather than picking one and hoping. */
+.chapter { page-break-before: always; break-before: page; }
+.article-end { text-align: center; color: #999; font-size: 1.4em;
+  letter-spacing: 0.4em; margin: 3em 0 0; }
+
+=== EPUB/toc.ncx ===
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta content="gmail-m1" name="dtb:uid"/>
+    <meta content="0" name="dtb:depth"/>
+    <meta content="0" name="dtb:totalPageCount"/>
+    <meta content="0" name="dtb:maxPageNumber"/>
+  </head>
+  <docTitle>
+    <text>Quarterly Numbers</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="chapter_0">
+      <navLabel>
+        <text>Quarterly Numbers</text>
+      </navLabel>
+      <content src="message.xhtml"/>
+    </navPoint>
+  </navMap>
+</ncx>
+
+=== META-INF/container.xml ===
+<binary xml ~1KB>
+
+=== mimetype ===
+application/epub+zip
+

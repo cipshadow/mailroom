@@ -1,6 +1,20 @@
 import pytest
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--golden-update",
+        action="store_true",
+        default=False,
+        help="Regenerate tests/golden/*.txt instead of asserting against them.",
+    )
+
+
+@pytest.fixture
+def golden_update(request):
+    return request.config.getoption("--golden-update")
+
+
 @pytest.fixture(autouse=True)
 def isolated_data_dir(tmp_path, monkeypatch):
     """Every test gets its own data directory; nothing touches the real one."""

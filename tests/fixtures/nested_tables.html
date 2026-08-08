@@ -1,0 +1,23 @@
+<html>
+<head><title>Nested Layout Tables</title></head>
+<body>
+  <table width="100%"><tr><td>
+    <table width="600"><tr><td>
+      <table><tr><td>
+        <table><tr><td>
+          <h1>Six Levels Deep</h1>
+          <table><tr><td>
+            <table><tr><td>
+              <p>Mailchimp and older ESPs nest layout tables this deep for
+              email-client compatibility. None of these tables carry a
+              &lt;th&gt; or scope/headers attribute, so sanitize_html's
+              layout-table detector must unwrap every level, leaving plain
+              paragraph content behind.</p>
+            </td></tr></table>
+          </td></tr></table>
+        </td></tr></table>
+      </td></tr></table>
+    </td></tr></table>
+  </td></tr></table>
+</body>
+</html>

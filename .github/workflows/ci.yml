@@ -1,11 +1,14 @@
-# Assumes kindle-mailroom/ is the repository root, which it is in the
-# public repo (github.com/cipshadow/mailroom).
+# Lives at the repo root, since kindle-mailroom/ is the repo root here
+# (github.com/cipshadow/mailroom). See scripts/publish.md in the private
+# monorepo for the promotion story.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # weekly, Monday 06:00 UTC - drives the previewer job
 
 jobs:
   test:
@@ -22,5 +25,32 @@ jobs:
         run: pip install -e .[dev]
       - name: Lint
         run: ruff check src tests
-      - name: Test
+      - name: Test (fast suite; Kindle Previewer tests are macOS-only, see previewer job)
         run: pytest -q
+
+  previewer:
+    # Kindle Previewer 3 has no official Linux build and no scripted installer
+    # here, so this job is opt-in rather than gating every PR: run it
+    # nightly and whenever a PR is explicitly labeled `previewer`. Treat a
+    # long stretch of skipped/absent runs as a signal to check it by hand
+    # locally (see CONTRIBUTING.md) rather than trusting a job that never
+    # actually executes.
+    if: github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'previewer'))
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .[dev]
+      - name: Check for Kindle Previewer
+        id: kpr
+        run: echo "present=$(command -v kindlepreviewer >/dev/null 2>&1 && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Previewer suite
+        if: steps.kpr.outputs.present == 'true'
+        run: pytest -q -m previewer
+      - name: Previewer unavailable
+        if: steps.kpr.outputs.present != 'true'
+        run: |
+          echo "::warning::Kindle Previewer is not installed on this runner; previewer suite skipped. Run it locally before release (see CONTRIBUTING.md)."

@@ -1,0 +1,23 @@
+<html>
+<head><title>Empty Blocks</title></head>
+<body>
+  <article>
+    <h1>The Empty Set</h1>
+    <p>This fixture isolates the E999 hazard: ebooklib round-trips content
+    through lxml XML, which serialises an empty element as a self-closing
+    tag (<code>&lt;div/&gt;</code>) rather than <code>&lt;div&gt;&lt;/div&gt;</code>.
+    Amazon's converter rejects self-closing block tags with an E999 error, so
+    every empty block below must be stripped by sanitize_html before it ever
+    reaches ebooklib.</p>
+    <div></div>
+    <div>   </div>
+    <p></p>
+    <span></span>
+    <li></li>
+    <blockquote></blockquote>
+    <div><span></span></div>
+    <div><img src="https://cdn.example.com/kept.png" alt="not empty, has an image"></div>
+    <div><br></div>
+  </article>
+</body>
+</html>

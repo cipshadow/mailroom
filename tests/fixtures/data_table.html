@@ -1,0 +1,21 @@
+<html>
+<head><title>Real Data Table</title></head>
+<body>
+  <article>
+    <h1>Quarterly Numbers</h1>
+    <p>This table has real headers (&lt;th&gt; with scope) and must survive
+    sanitize_html's layout-table unwrapping intact - it is genuine tabular
+    data, not a layout hack.</p>
+    <table>
+      <thead>
+        <tr><th scope="col">Quarter</th><th scope="col">Revenue</th><th scope="col">Growth</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Q1</td><td>$1.2M</td><td>+4%</td></tr>
+        <tr><td>Q2</td><td>$1.4M</td><td>+16%</td></tr>
+        <tr><td>Q3</td><td>$1.3M</td><td>-7%</td></tr>
+      </tbody>
+    </table>
+  </article>
+</body>
+</html>
