@@ -66,3 +66,8 @@ select = ["E", "F", "W", "I"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not previewer'"
+markers = [
+    "previewer: requires Kindle Previewer 3 (macOS/Windows only, slow); run with `pytest -m previewer`",
+    "golden: EPUB snapshot comparison against tests/golden/*.txt",
+]

@@ -1,0 +1,15 @@
+<html>
+<head><title>Inline Data URI Image</title></head>
+<body>
+  <article>
+    <h1>Base64 Inline Chart</h1>
+    <p>Some Ghost/Ghost-based newsletters embed small charts and diagrams as
+    base64 data: URIs rather than remote images, to avoid an extra network
+    round trip. These currently get dropped by the same "starts with http"
+    check that drops cid: URIs.</p>
+    <img alt="tiny red square, 2x2 PNG"
+         src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC">
+    <p>Text after the data URI image.</p>
+  </article>
+</body>
+</html>

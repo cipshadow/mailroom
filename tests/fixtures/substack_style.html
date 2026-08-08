@@ -1,0 +1,32 @@
+<html>
+<head><title>Substack-style Digest</title></head>
+<body>
+  <center class="wrapper">
+    <center class="container" style="max-width:600px; text-align:center;">
+      <div class="post-header">
+        <h1>On Writing Slowly</h1>
+        <p class="subtitle">a newsletter about doing less, better</p>
+      </div>
+      <div class="post-content">
+        <p>Substack and similar platforms wrap their entire layout in nested
+        &lt;center&gt; elements for compatibility with old email clients,
+        which would otherwise centre-align the whole article body on a
+        Kindle if left unstripped. This fixture is an originally-authored
+        approximation of that markup pattern - it is not copied from any
+        actual publication - written to exercise the same sanitize_html
+        code path (the &lt;center&gt; unwrap step) that real Substack
+        newsletters trigger.</p>
+        <p>A second paragraph, so word-count-gated pipeline logic has enough
+        content to clear its threshold during end-to-end tests.</p>
+        <figure>
+          <img src="https://substackcdn.com/image/fetch/w_1456,c_limit/https%3A%2F%2Fexample.com%2Fchart.png" alt="A chart">
+        </figure>
+      </div>
+      <div class="post-footer">
+        <p><a href="https://example.substack.com/subscribe">Subscribe</a> &middot;
+        <a href="https://example.substack.com/unsubscribe?token=abc">Unsubscribe</a></p>
+      </div>
+    </center>
+  </center>
+</body>
+</html>

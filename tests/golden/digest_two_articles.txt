@@ -1,0 +1,228 @@
+FILES:
+  EPUB/article_00.xhtml
+  EPUB/article_01.xhtml
+  EPUB/content.opf
+  EPUB/images/img000.jpg
+  EPUB/nav.xhtml
+  EPUB/style/default.css
+  EPUB/toc.ncx
+  EPUB/toc.xhtml
+  META-INF/container.xml
+  mimetype
+
+=== EPUB/article_00.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" xml:lang="en">
+  <head>
+    <title>First Post</title>
+    <link href="style/default.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div class="chapter">
+      <div class="meta">From: Writer &lt;writer@newsletter.com&gt;<br/>Date: REDACTED-DATE<br/>Article 1 of 2</div>
+      <div>
+        <div>
+          <h1>The Big Idea</h1>
+        </div>
+        <div>
+          <p>Newsletters are the last good corner of the internet, a place where
+      writers still own their relationship with readers and long-form thought
+      survives the feed. This paragraph exists to add words so the fixture
+      clears any word-count thresholds used by tests exercising the pipeline
+      logic end to end without network access.</p>
+          <div>
+            <img alt="A chart" height="100" src="images/img000.jpg" style="max-width: 100%; height: auto;" width="200"/>
+            <p>Weekly numbers</p>
+          </div>
+          <p>Layout table cell content</p>
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>Alpha</td>
+              <td>1</td>
+            </tr>
+          </table>
+          <p>Styled paragraph with
+      <a href="https://example.com/post">a link</a> inside.</p>
+        </div>
+        <div>Unsubscribe</div>
+      </div>
+      <p class="article-end">∿∿∿</p>
+    </div>
+  </body>
+</html>
+
+=== EPUB/article_01.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" xml:lang="en">
+  <head>
+    <title>Second Post</title>
+    <link href="style/default.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div class="chapter">
+      <div class="meta">From: Writer &lt;writer@newsletter.com&gt;<br/>Date: REDACTED-DATE<br/>Article 2 of 2</div>
+      <div>
+        <h1>Quarterly Numbers</h1>
+        <p>This table has real headers (&lt;th&gt; with scope) and must survive
+    sanitize_html's layout-table unwrapping intact - it is genuine tabular
+    data, not a layout hack.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Quarter</th>
+              <th>Revenue</th>
+              <th>Growth</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Q1</td>
+              <td>$1.2M</td>
+              <td>+4%</td>
+            </tr>
+            <tr>
+              <td>Q2</td>
+              <td>$1.4M</td>
+              <td>+16%</td>
+            </tr>
+            <tr>
+              <td>Q3</td>
+              <td>$1.3M</td>
+              <td>-7%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="article-end">∿∿∿</p>
+    </div>
+  </body>
+</html>
+
+=== EPUB/content.opf ===
+<package xmlns="http://www.idpf.org/2007/opf" prefix="rendition: http://www.idpf.org/vocab/rendition/#" unique-identifier="id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <meta property="dcterms:modified">REDACTED</meta>
+    <meta content="Ebook-lib 0.20.0" name="generator"/>
+    <dc:identifier id="id">digest-Newsletter-REDACTED-DATE</dc:identifier>
+    <dc:title>Newsletter - 06/7 digest</dc:title>
+    <dc:language>en</dc:language>
+    <dc:creator id="creator">Newsletter</dc:creator>
+  </metadata>
+  <manifest>
+    <item href="style/default.css" id="style" media-type="text/css"/>
+    <item href="images/img000.jpg" id="img0_000" media-type="image/jpeg"/>
+    <item href="article_00.xhtml" id="chapter_0" media-type="application/xhtml+xml"/>
+    <item href="article_01.xhtml" id="chapter_1" media-type="application/xhtml+xml"/>
+    <item href="toc.xhtml" id="chapter_2" media-type="application/xhtml+xml"/>
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+    <item href="nav.xhtml" id="nav" media-type="application/xhtml+xml" properties="nav"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="chapter_2"/>
+    <itemref idref="chapter_0"/>
+    <itemref idref="chapter_1"/>
+  </spine>
+</package>
+
+=== EPUB/images/img000.jpg ===
+<binary jpg ~1KB>
+
+=== EPUB/nav.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">
+  <head>
+    <title>Newsletter - 06/7 digest</title>
+  </head>
+  <body>
+    <nav id="id" role="doc-toc" epub:type="toc">
+      <h2>Newsletter - 06/7 digest</h2>
+      <ol>
+        <li>
+          <a href="toc.xhtml">Contents</a>
+        </li>
+        <li>
+          <a href="article_00.xhtml">First Post</a>
+        </li>
+        <li>
+          <a href="article_01.xhtml">Second Post</a>
+        </li>
+      </ol>
+    </nav>
+  </body>
+</html>
+
+=== EPUB/style/default.css ===
+
+body { font-family: Georgia, serif; line-height: 1.55; margin: 1em; }
+h1 { font-size: 1.35em; margin-bottom: 0.2em; }
+h2 { font-size: 1.15em; margin-top: 1.5em; margin-bottom: 0.3em; border-top: 1px solid #ddd; padding-top: 1em; }
+.meta { color: #555; font-size: 0.85em; margin-bottom: 1.5em; }
+img { max-width: 100%; height: auto; }
+blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; }
+pre { white-space: pre-wrap; font-family: monospace; }
+.toc { font-size: 0.95em; margin: 2em 0; }
+.toc-entry { margin: 0.3em 0; margin-left: 1em; }
+/* Send-to-Kindle converts server-side to KFX, and that converter has a
+   history of not reliably honoring page-break-before alone - break-before
+   is the modern CSS Fragmentation equivalent some renderers check instead.
+   Both, redundantly, rather than picking one and hoping. */
+.chapter { page-break-before: always; break-before: page; }
+.article-end { text-align: center; color: #999; font-size: 1.4em;
+  letter-spacing: 0.4em; margin: 3em 0 0; }
+
+=== EPUB/toc.ncx ===
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta content="digest-Newsletter-REDACTED-DATE" name="dtb:uid"/>
+    <meta content="0" name="dtb:depth"/>
+    <meta content="0" name="dtb:totalPageCount"/>
+    <meta content="0" name="dtb:maxPageNumber"/>
+  </head>
+  <docTitle>
+    <text>Newsletter - 06/7 digest</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="chapter_2">
+      <navLabel>
+        <text>Contents</text>
+      </navLabel>
+      <content src="toc.xhtml"/>
+    </navPoint>
+    <navPoint id="chapter_0">
+      <navLabel>
+        <text>First Post</text>
+      </navLabel>
+      <content src="article_00.xhtml"/>
+    </navPoint>
+    <navPoint id="chapter_1">
+      <navLabel>
+        <text>Second Post</text>
+      </navLabel>
+      <content src="article_01.xhtml"/>
+    </navPoint>
+  </navMap>
+</ncx>
+
+=== EPUB/toc.xhtml ===
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" xml:lang="en">
+  <head>
+    <title>Contents</title>
+    <link href="style/default.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <h1>Newsletter - 06/7 digest</h1>
+    <div class="meta">Week of REDACTED-DATE • 2 articles • 110 total words</div>
+    <div class="toc">
+      <div class="toc-entry">1. First Post (71 words)</div>
+      <div class="toc-entry">2. Second Post (39 words)</div>
+    </div>
+  </body>
+</html>
+
+=== META-INF/container.xml ===
+<binary xml ~1KB>
+
+=== mimetype ===
+application/epub+zip
+

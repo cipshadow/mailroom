@@ -1,0 +1,17 @@
+<html>
+<head><title>Inline CID Attachments</title></head>
+<body>
+  <article>
+    <h1>Inline Attachment Images</h1>
+    <p>Gmail exposes inline image attachments as MIME parts with a
+    Content-ID header, referenced in the HTML body as <code>cid:</code> URLs
+    rather than http(s) URLs. This is a very common newsletter pattern
+    (screenshots pasted directly into an email client) and is currently
+    dropped outright because embed logic only accepts src values starting
+    with "http".</p>
+    <img src="cid:image001.png@01DABCDE.12345678" alt="Inline screenshot" width="480" height="270">
+    <p>Text after the inline image, to confirm the rest of the body survives
+    even when the cid: image cannot yet be resolved.</p>
+  </article>
+</body>
+</html>
