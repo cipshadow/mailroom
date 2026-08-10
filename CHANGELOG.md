@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-08-10
+
+### Fixed
+- **macOS Intel desktop build crashed on launch.** The `v0.3.0` release run
+  failed its Intel selftest: PyInstaller bundled the build machine's system
+  OpenSSL for `cryptography`, which didn't match the OpenSSL symbols the
+  wheel's Rust extension actually needed. No `v0.3.0` desktop assets were
+  ever published. Excluded that unneeded, mismatched copy from the build so
+  the extension uses its own statically-linked OpenSSL instead.
+
 ## [0.3.0] — 2026-07-30
 
 Free, unsigned desktop apps for macOS and Windows — no Python, no terminal.
