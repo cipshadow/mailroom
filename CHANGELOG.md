@@ -4,15 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.1] — 2026-08-10
+## [0.3.2] — 2026-08-10
 
 ### Fixed
-- **macOS Intel desktop build crashed on launch.** The `v0.3.0` release run
-  failed its Intel selftest: PyInstaller bundled the build machine's system
-  OpenSSL for `cryptography`, which didn't match the OpenSSL symbols the
-  wheel's Rust extension actually needed. No `v0.3.0` desktop assets were
-  ever published. Excluded that unneeded, mismatched copy from the build so
-  the extension uses its own statically-linked OpenSSL instead.
+- **macOS desktop build crashed on launch, on both architectures.** `v0.3.0`
+  failed its Intel selftest, and `v0.3.1`'s attempted fix (excluding the
+  bundled OpenSSL entirely) turned out to be wrong: `_ssl.so` needs *some*
+  bundled `libssl.3.dylib` to import at all, so excluding it broke the
+  arm64 build too, which had been working. The actual problem was that
+  these runner images ship a Homebrew `openssl@3` older than OpenSSL 3.2,
+  missing symbols (`_SSL_get0_group_name`) that `cryptography`'s wheel
+  needs - PyInstaller was bundling a real dependency, just a stale one.
+  Fixed by upgrading Homebrew's `openssl@3` before packaging, so a
+  sufficiently recent copy gets bundled. No `v0.3.0` or `v0.3.1` desktop
+  assets were ever published - neither release run reached the publish
+  step.
+
+## [0.3.1] — 2026-08-10
+
+Tag exists; release run failed (see 0.3.2). No assets were published under
+this version.
 
 ## [0.3.0] — 2026-07-30
 
