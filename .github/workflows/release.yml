@@ -58,11 +58,22 @@ jobs:
       # both need, and PyInstaller bundles exactly that copy alongside them.
       # v0.3.1 tried excluding it instead of upgrading it, which was wrong:
       # _ssl.so needs *some* libssl.3.dylib bundled, just not that stale one -
-      # excluding it broke every platform, not just Intel. Upgrading in place
-      # ensures PyInstaller has something recent enough to bundle.
+      # excluding it broke every platform, not just Intel. v0.3.2's first
+      # attempt at upgrading it in place (`brew install || brew upgrade`,
+      # no `brew update` first) silently no-opped: Homebrew's local formula
+      # index was stale, so "upgrade" found nothing newer than what was
+      # already there and mac-intel bundled the exact same too-old dylib.
+      # `brew update` refreshes the index before install/upgrade so there's
+      # actually something newer to pick up; the version print after is so
+      # a repeat of this failure shows the real installed version in the
+      # log instead of another blind guess.
       - name: Upgrade OpenSSL (macOS)
         if: runner.os == 'macOS'
-        run: brew install openssl@3 || brew upgrade openssl@3
+        run: |
+          brew update
+          brew install openssl@3 || brew upgrade openssl@3
+          brew link --force --overwrite openssl@3
+          "$(brew --prefix openssl@3)/bin/openssl" version
 
       - run: pip install . pyinstaller==6.21.0 pyinstaller-hooks-contrib
 
