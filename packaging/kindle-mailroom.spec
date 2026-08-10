@@ -65,23 +65,6 @@ a.datas = [
     or entry[0].replace("\\", "/").endswith("gmail.v1.json")
 ]
 
-if sys.platform == "darwin":
-    # hooks-contrib's hook-cryptography.py bundles the build machine's system
-    # libssl/libcrypto, believing cryptography's Rust extension dynamically
-    # links OpenSSL. Modern cryptography wheels (we're on 50.0.0) statically
-    # link their own OpenSSL instead, so that bundled copy is both unneeded
-    # and actively harmful: on the macos-15-intel release runner its Homebrew
-    # libssl.3.dylib predates the OpenSSL 3.2 symbols the wheel expects,
-    # which crashes the frozen app at import time with "Symbol not found:
-    # _SSL_get0_group_name" (macos-latest/arm64 happened to have a newer
-    # Homebrew OpenSSL and didn't show it - this was never actually needed on
-    # either arch). Dropping it forces the extension to fall back to its own
-    # vendored OpenSSL, which is what it was built and tested against.
-    a.binaries = [
-        entry for entry in a.binaries
-        if not entry[0].startswith(("libssl", "libcrypto"))
-    ]
-
 pyz = PYZ(a.pure)
 
 if sys.platform == "win32":
