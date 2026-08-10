@@ -6,6 +6,15 @@
 #   git tag v0.3.0 && git push origin v0.3.0
 #
 # No Linux build: pipx already covers Linux users (see README Quickstart).
+# No Intel macOS build: cryptography 50.0.0 publishes zero macOS x86_64
+# wheels on PyPI (checked directly against the PyPI JSON API) - only
+# macosx_11_0_arm64. Without a prebuilt wheel, pip builds it from source,
+# and that locally-built extension never links correctly once PyInstaller
+# freezes it (v0.3.0-v0.3.3 all failed here with the same dlopen crash;
+# neither excluding nor upgrading the runner's system OpenSSL fixed it -
+# arm64 was never touching system OpenSSL at all, since its official wheel
+# statically links its own). This is an upstream wheel-availability gap,
+# not something fixable in this workflow.
 name: Release
 
 on:
@@ -40,8 +49,6 @@ jobs:
         include:
           - os: macos-latest
             label: mac-arm64
-          - os: macos-15-intel
-            label: mac-intel
           - os: windows-latest
             label: windows
     runs-on: ${{ matrix.os }}
@@ -50,30 +57,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      # v0.3.0 and v0.3.1 both shipped a macOS build that dlopen-crashed at
-      # launch ("Symbol not found: _SSL_get0_group_name") because Homebrew's
-      # preinstalled openssl@3 on these runner images predates OpenSSL 3.2 -
-      # too old for the symbols _ssl.so and cryptography's Rust extension
-      # both need, and PyInstaller bundles exactly that copy alongside them.
-      # v0.3.1 tried excluding it instead of upgrading it, which was wrong:
-      # _ssl.so needs *some* libssl.3.dylib bundled, just not that stale one -
-      # excluding it broke every platform, not just Intel. v0.3.2's first
-      # attempt at upgrading it in place (`brew install || brew upgrade`,
-      # no `brew update` first) silently no-opped: Homebrew's local formula
-      # index was stale, so "upgrade" found nothing newer than what was
-      # already there and mac-intel bundled the exact same too-old dylib.
-      # `brew update` refreshes the index before install/upgrade so there's
-      # actually something newer to pick up; the version print after is so
-      # a repeat of this failure shows the real installed version in the
-      # log instead of another blind guess.
-      - name: Upgrade OpenSSL (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install openssl@3 || brew upgrade openssl@3
-          brew link --force --overwrite openssl@3
-          "$(brew --prefix openssl@3)/bin/openssl" version
 
       - run: pip install . pyinstaller==6.21.0 pyinstaller-hooks-contrib
 

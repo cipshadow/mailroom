@@ -4,18 +4,32 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] — 2026-08-10
+
+### Changed
+- **Dropped the Intel macOS desktop build.** Three straight releases
+  (`v0.3.0`-`v0.3.3`) failed the same way: the app crashed on launch with
+  `Symbol not found: _SSL_get0_group_name`. Every attempted fix targeted
+  the runner's system OpenSSL, which turned out to be the wrong target
+  entirely - `cryptography` 50.0.0 publishes no macOS x86_64 wheel on
+  PyPI (verified against the PyPI JSON API: only `macosx_11_0_arm64`).
+  With no prebuilt wheel, pip builds it from source on Intel, and that
+  build never links correctly once PyInstaller freezes it, regardless of
+  which system OpenSSL is present - arm64 was never affected because its
+  official wheel statically links its own OpenSSL and never touches the
+  system copy. This is an upstream wheel-availability gap, not something
+  fixable in this project's build config. Apple Silicon and Windows
+  desktop apps are unaffected; Intel Mac users can still run Kindle
+  Mailroom via `pipx install` (see README Quickstart).
+
 ## [0.3.3] — 2026-08-10
 
-### Fixed
-- **macOS desktop build still crashing on launch (Intel).** `v0.3.2`'s
-  `brew install openssl@3 || brew upgrade openssl@3` silently no-opped on
-  the mac-intel runner: without a `brew update` first, Homebrew's local
-  formula index was stale, so "upgrade" found nothing newer and the exact
-  same too-old `libssl.3.dylib` got bundled again - identical failure to
-  `v0.3.0`. Added `brew update` before the install/upgrade, an explicit
-  `brew link --force` in case relinking didn't happen automatically, and
-  an `openssl version` print so a repeat failure shows the actual bundled
-  version in the log instead of requiring another blind guess.
+Tag exists; the `brew update` fix was verified via a dispatch run (not a
+tag) and genuinely did upgrade OpenSSL to 3.6.3, but mac-intel still
+crashed with the identical error - proof the OpenSSL-version theory was
+wrong all along (see 0.3.4 for the actual root cause). No tag was pushed
+for this dispatch run, but the version number is retired here for
+continuity with the CHANGELOG history above.
 
 ## [0.3.2] — 2026-08-10
 
