@@ -14,7 +14,7 @@ from . import gmail_client as gc
 from .epub_build import message_to_epub, messages_to_digest_epub, url_to_epub
 from .models import GmailMessage, SendReport, digest_title, group_messages_by_sender_week
 from .sanitize import count_words
-from .store import Store
+from .store import Store, now_iso
 from .urlfetch import download_images, fetch_article, get_article_date
 
 ProgressFn = Callable[[str], None]
@@ -45,10 +45,11 @@ def send_labelled(
         service, config.source_label, effective_limit, effective_unread
     )
     progress(f"Found {len(messages)} message(s) in \"{config.source_label}\"")
+    batch_id = now_iso()
     if use_digest:
-        return _send_digest_mode(service, store, config, messages,
+        return _send_digest_mode(service, store, config, messages, batch_id,
                                  dry_run=dry_run, resend=resend, progress=progress)
-    return _send_one_by_one(service, store, config, messages,
+    return _send_one_by_one(service, store, config, messages, batch_id,
                             dry_run=dry_run, resend=resend, progress=progress)
 
 
@@ -68,7 +69,7 @@ def _skip_thin(service, config: Config, message: GmailMessage,
 
 
 def _send_one_by_one(service, store: Store, config: Config, messages: list[GmailMessage],
-                     *, dry_run: bool, resend: bool, progress: ProgressFn) -> SendReport:
+                     batch_id: str, *, dry_run: bool, resend: bool, progress: ProgressFn) -> SendReport:
     """Send one EPUB per email (original mode)."""
     report = SendReport(dry_run=dry_run)
     for message in messages:
@@ -88,7 +89,7 @@ def _send_one_by_one(service, store: Store, config: Config, messages: list[Gmail
         send_title = f"[resend] {message.subject}" if resend else message.subject
         gc.send_epub_to_kindle(service, epub_path, send_title,
                                config.gmail_address, config.kindle_email)
-        store.record_sent(message, epub_path, config.kindle_email)
+        store.record_sent(message, epub_path, config.kindle_email, batch_id=batch_id)
         gc.move_to_sent_label(service, message.message_id, config.source_label,
                               config.sent_label, config.mark_read)
         report.sent += 1
@@ -100,7 +101,7 @@ def _send_one_by_one(service, store: Store, config: Config, messages: list[Gmail
 
 
 def _send_digest_mode(service, store: Store, config: Config, messages: list[GmailMessage],
-                      *, dry_run: bool, resend: bool, progress: ProgressFn) -> SendReport:
+                      batch_id: str, *, dry_run: bool, resend: bool, progress: ProgressFn) -> SendReport:
     """Send weekly digests grouped by sender."""
     report = SendReport(dry_run=dry_run)
 
@@ -135,7 +136,7 @@ def _send_digest_mode(service, store: Store, config: Config, messages: list[Gmai
             # sender_domain is the store's historical column name; it now
             # holds the sender display name used to group the digest.
             store.record_sent(msg, epub_path, config.kindle_email,
-                              digest_id=digest_id, sender_domain=sender_name)
+                              digest_id=digest_id, sender_domain=sender_name, batch_id=batch_id)
             gc.move_to_sent_label(service, msg.message_id, config.source_label,
                                   config.sent_label, config.mark_read)
 
@@ -159,6 +160,7 @@ def send_urls(
 ) -> SendReport:
     """Fetch each URL, build an EPUB, and send it to the Kindle address."""
     report = SendReport()
+    batch_id = now_iso()
 
     if chronological or (number and len(urls) > 1):
         progress(f"Sorting {len(urls)} article(s) chronologically...")
@@ -181,7 +183,8 @@ def send_urls(
 
             gmail_id = gc.send_epub_to_kindle(service, epub_path, display_title,
                                               config.gmail_address, config.kindle_email)
-            store.record_url_sent(url, display_title, epub_path, config.kindle_email, gmail_id)
+            store.record_url_sent(url, display_title, epub_path, config.kindle_email, gmail_id,
+                                  batch_id=batch_id)
             report.sent += 1
             progress(f"  sent ({gmail_id})")
         except Exception as exc:

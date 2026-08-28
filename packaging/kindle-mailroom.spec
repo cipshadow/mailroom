@@ -100,6 +100,10 @@ elif sys.platform == "darwin":
             "CFBundleShortVersionString": APP_VERSION,
             "CFBundleVersion": APP_VERSION,
             "NSHighResolutionCapable": True,
+            # Normal foreground app: it now opens a real pywebview window
+            # (see desktop.py) instead of the system browser, so it behaves
+            # like any other windowed app - Dock icon, Cmd+Tab entry, no
+            # more bouncing forever waiting for a window that never came.
             "LSUIElement": False,
         },
     )

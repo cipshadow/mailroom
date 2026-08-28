@@ -110,7 +110,7 @@ def digest_title(sender_name: str, week_start: str) -> str:
     a subject next to a "2026-07-30 - Substack 2026-07-30.epub" filename."""
     try:
         d = datetime.fromisoformat(week_start).date()
-        date_label = f"{d.day:02d}/{d.month}"
+        date_label = d.strftime("%d %b")
     except ValueError:
         date_label = week_start
     return f"{sender_name} - {date_label} digest"

@@ -4,6 +4,27 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-08-28
+
+### Fixed
+- **Digest mode could resend an already-delivered newsletter.** `digest_already_sent()`
+  only recognized a message as already sent if it had previously gone out
+  *as a digest* - a message sent one-by-one first (no `digest_id`) was
+  invisible to that check, so switching to digest mode later could
+  re-deliver it. It now checks delivery status the same way one-by-one mode
+  does, regardless of how the message was sent before.
+- **Desktop app: Dock icon bounced indefinitely and never opened.** The
+  packaged app opened the system browser instead of a window of its own, so
+  macOS never saw it finish launching. It now opens a real native window
+  (via `pywebview`) instead of the browser - normal Dock/Cmd+Tab behavior,
+  no more stuck bounce.
+
+### Added
+- Delivery history and the dashboard now show each newsletter's own date
+  alongside when it was sent to Kindle, and group rows from the same send
+  run under one timestamp (the run's start time) instead of repeating it on
+  every row.
+
 ## [0.3.4] — 2026-08-10
 
 ### Changed

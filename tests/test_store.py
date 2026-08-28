@@ -34,8 +34,8 @@ def test_digest_dedup(tmp_path):
     store.record_sent(a, Path("/tmp/d.epub"), "you@kindle.com", digest_id="Newsletter-2026-07-06")
     assert store.digest_already_sent(["a", "zzz"])
     assert not store.digest_already_sent(["b", "zzz"])
-    store.record_sent(b, Path("/tmp/d.epub"), "you@kindle.com")  # sent, but not as digest
-    assert not store.digest_already_sent(["b"])
+    store.record_sent(b, Path("/tmp/d.epub"), "you@kindle.com")  # sent individually, not as a digest
+    assert store.digest_already_sent(["b"])  # digest mode must still see it as delivered
     store.close()
 
 
@@ -90,5 +90,5 @@ def test_migration_of_pre_digest_schema(tmp_path):
 
     store = Store(db)  # triggers ALTER TABLE migration
     assert store.already_sent("old1")
-    assert not store.digest_already_sent(["old1"])
+    assert store.digest_already_sent(["old1"])
     store.close()

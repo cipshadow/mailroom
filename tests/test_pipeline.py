@@ -110,7 +110,7 @@ def test_digest_mode_groups_by_sender_not_domain(monkeypatch, tmp_path):
     store = Store(db_path())
     try:
         report = pipeline._send_digest_mode(
-            None, store, config, messages, dry_run=False, resend=False,
+            None, store, config, messages, "test-batch", dry_run=False, resend=False,
             progress=lambda _: None,
         )
     finally:
@@ -118,6 +118,6 @@ def test_digest_mode_groups_by_sender_not_domain(monkeypatch, tmp_path):
 
     assert report.sent == 2, "one digest per author, not one combined digest"
     assert sorted(sent_titles) == [
-        "Lenny's Newsletter - 06/7 digest",
-        "Platformer - 06/7 digest",
+        "Lenny's Newsletter - 06 Jul digest",
+        "Platformer - 06 Jul digest",
     ]

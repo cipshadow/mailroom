@@ -27,12 +27,39 @@ def _auth_status() -> tuple[bool, str]:
         return False, str(exc)
 
 
+def _mark_batch_headers(deliveries: list[dict]) -> list[dict]:
+    """Flag the first row of each consecutive run sharing a batch_id, so the
+    template can show the send timestamp once per job run instead of once
+    per row - rows from one "Send now" click are otherwise indistinguishable
+    from unrelated sends at a glance. Rows without a batch_id (sent before
+    this tracking existed) always get their own header.
+
+    The list is newest-first, so the row where a batch is first encountered
+    is its *last* send, not its first - batch_started_at looks up the
+    earliest sent_at in the group instead, so the header reflects when the
+    batch began."""
+    batch_started_at: dict[str, str] = {}
+    for d in deliveries:
+        bid = d["batch_id"]
+        sent = d["sent_at"] or ""
+        if bid is not None and (bid not in batch_started_at or sent < batch_started_at[bid]):
+            batch_started_at[bid] = sent
+
+    prev_batch = object()
+    for d in deliveries:
+        current = d["batch_id"]
+        d["show_sent_header"] = current is None or current != prev_batch
+        d["batch_started_at"] = batch_started_at.get(current, d["sent_at"])
+        prev_batch = current
+    return deliveries
+
+
 @bp.route("/")
 def index():
     config = Config.load()
     store = Store(db_path())
     try:
-        deliveries = store.list_deliveries(limit=15)
+        deliveries = _mark_batch_headers(store.list_deliveries(limit=15))
     finally:
         store.close()
     auth_ok, auth_message = _auth_status()
@@ -119,7 +146,7 @@ def current_job():
 def history():
     store = Store(db_path())
     try:
-        deliveries = store.list_deliveries(limit=500)
+        deliveries = _mark_batch_headers(store.list_deliveries(limit=500))
     finally:
         store.close()
     return render_template("history.html", deliveries=deliveries, job_busy=_runner().busy,

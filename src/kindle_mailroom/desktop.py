@@ -161,15 +161,33 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if _port_is_free(port):
             app = create_app()
-            threading.Timer(1.0, lambda u=url: webbrowser.open(u)).start()
+            # Localhost only, on purpose. See SECURITY.md. Runs in a
+            # background thread because the native window below has to own
+            # the main thread on macOS.
+            server = threading.Thread(
+                target=lambda: app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False),
+                daemon=True,
+            )
+            server.start()
             log.info("Serving at %s", url)
-            # Localhost only, on purpose. See SECURITY.md.
-            app.run(host="127.0.0.1", port=port, debug=False)
+            _show_window(url)
             return 0
         # Occupied by something that didn't answer as us in time - try the next port.
 
     log.error("Could not find a free port in %s-%s", _PORT_SCAN_RANGE.start, _PORT_SCAN_RANGE.stop - 1)
     return 1
+
+
+def _show_window(url: str) -> None:
+    """A real native window, not the system browser. LSUIElement is False
+    (see the .spec) so macOS expects this app to behave like a normal
+    windowed app - opening the browser instead left nothing for macOS to
+    consider "launched", so the Dock icon bounced forever. webview.start()
+    blocks the main thread until the window closes, which is also when the
+    daemon server thread above dies and the process exits."""
+    import webview
+    webview.create_window("Kindle Mailroom", url, width=1080, height=760, min_size=(720, 560))
+    webview.start()
 
 
 if __name__ == "__main__":

@@ -106,7 +106,7 @@ FILES:
     <meta property="dcterms:modified">REDACTED</meta>
     <meta content="Ebook-lib 0.20.0" name="generator"/>
     <dc:identifier id="id">digest-Newsletter-REDACTED-DATE</dc:identifier>
-    <dc:title>Newsletter - 06/7 digest</dc:title>
+    <dc:title>Newsletter - 06 Jul digest</dc:title>
     <dc:language>en</dc:language>
     <dc:creator id="creator">Newsletter</dc:creator>
   </metadata>
@@ -132,11 +132,11 @@ FILES:
 === EPUB/nav.xhtml ===
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">
   <head>
-    <title>Newsletter - 06/7 digest</title>
+    <title>Newsletter - 06 Jul digest</title>
   </head>
   <body>
     <nav id="id" role="doc-toc" epub:type="toc">
-      <h2>Newsletter - 06/7 digest</h2>
+      <h2>Newsletter - 06 Jul digest</h2>
       <ol>
         <li>
           <a href="toc.xhtml">Contents</a>
@@ -180,7 +180,7 @@ pre { white-space: pre-wrap; font-family: monospace; }
     <meta content="0" name="dtb:maxPageNumber"/>
   </head>
   <docTitle>
-    <text>Newsletter - 06/7 digest</text>
+    <text>Newsletter - 06 Jul digest</text>
   </docTitle>
   <navMap>
     <navPoint id="chapter_2">
@@ -211,7 +211,7 @@ pre { white-space: pre-wrap; font-family: monospace; }
     <link href="style/default.css" rel="stylesheet" type="text/css"/>
   </head>
   <body>
-    <h1>Newsletter - 06/7 digest</h1>
+    <h1>Newsletter - 06 Jul digest</h1>
     <div class="meta">Week of REDACTED-DATE • 2 articles • 110 total words</div>
     <div class="toc">
       <div class="toc-entry">1. First Post (71 words)</div>
