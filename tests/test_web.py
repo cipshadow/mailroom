@@ -108,6 +108,28 @@ def test_history_and_url_pages_render(client):
         assert resp.status_code == 200, path
 
 
+def test_mark_batch_headers_uses_batch_start_not_first_seen_row():
+    from kindle_mailroom.web.views.dashboard import _mark_batch_headers
+
+    # list_deliveries orders newest-first, so within a batch the row seen
+    # first is the *last* send, not the first - the header must still show
+    # the batch's start time, not that row's own sent_at.
+    deliveries = [
+        {"sent_at": "2026-08-28T19:01:42+00:00", "batch_id": "b1"},
+        {"sent_at": "2026-08-28T18:59:00+00:00", "batch_id": "b1"},
+        {"sent_at": "2026-08-28T18:57:25+00:00", "batch_id": "b1"},
+        {"sent_at": "2026-08-15T09:50:42+00:00", "batch_id": "b2"},
+        {"sent_at": "2026-08-01T11:09:49+00:00", "batch_id": None},
+        {"sent_at": "2026-08-01T11:09:55+00:00", "batch_id": None},
+    ]
+    result = _mark_batch_headers(deliveries)
+
+    assert [d["show_sent_header"] for d in result] == [True, False, False, True, True, True]
+    assert result[0]["batch_started_at"] == "2026-08-28T18:57:25+00:00"
+    assert result[1]["batch_started_at"] == "2026-08-28T18:57:25+00:00"
+    assert result[3]["batch_started_at"] == "2026-08-15T09:50:42+00:00"
+
+
 def test_jobs_endpoint_idle(client):
     complete_setup()
     resp = client.get("/jobs/current", base_url="http://localhost:8377")

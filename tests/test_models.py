@@ -89,9 +89,9 @@ def test_distinct_substack_authors_do_not_collapse():
 @pytest.mark.parametrize(
     "week_start,expected",
     [
-        ("2026-07-06", "Lenny's Newsletter - 06/7 digest"),
-        ("2026-01-01", "Lenny's Newsletter - 01/1 digest"),
-        ("2026-12-25", "Lenny's Newsletter - 25/12 digest"),
+        ("2026-07-06", "Lenny's Newsletter - 06 Jul digest"),
+        ("2026-01-01", "Lenny's Newsletter - 01 Jan digest"),
+        ("2026-12-25", "Lenny's Newsletter - 25 Dec digest"),
     ],
 )
 def test_digest_title_format(week_start, expected):

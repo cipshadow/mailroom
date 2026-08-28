@@ -28,8 +28,7 @@
     <p class="muted">Sends {% if config.unread_only %}unread {% endif %}emails labeled “{{ config.source_label }}”.</p>
     <form method="post" action="{{ url_for('dashboard.send_now') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <label class="inline"><input type="radio" name="mode" value="default" checked> Use my default</label>
-      <label class="inline"><input type="radio" name="mode" value="single"> One per email</label>
+      <label class="inline"><input type="radio" name="mode" value="single" checked> One per email</label>
       <label class="inline"><input type="radio" name="mode" value="digest"> Weekly digest</label>
       <br>
       <label class="inline"><input type="checkbox" name="dry_run">
@@ -58,12 +57,13 @@
   <h2 style="margin-top:0">Recent deliveries</h2>
   {% if deliveries %}
   <table>
-    <tr><th>Status</th><th>Subject</th><th>Sent</th></tr>
+    <tr><th>Status</th><th>Subject</th><th>Email date</th><th>Sent</th></tr>
     {% for d in deliveries %}
-    <tr>
+    <tr{% if d.show_sent_header %} class="batch-start"{% endif %}>
       <td>{{ d.status }}</td>
       <td class="subject" title="{{ d.subject }}">{{ d.subject }}</td>
-      <td class="muted">{{ (d.sent_at or '')[:16].replace('T', ' ') }}</td>
+      <td class="muted">{{ (d.gmail_date or '')[:10] }}</td>
+      <td class="muted">{{ (d.batch_started_at or '')[:16].replace('T', ' ') if d.show_sent_header else '' }}</td>
     </tr>
     {% endfor %}
   </table>

@@ -12,13 +12,14 @@
 <div class="card">
   {% if deliveries %}
   <table>
-    <tr><th>Status</th><th>Subject</th><th>From</th><th>Sent</th><th>Digest</th></tr>
+    <tr><th>Status</th><th>Subject</th><th>From</th><th>Email date</th><th>Sent</th><th>Digest</th></tr>
     {% for d in deliveries %}
-    <tr>
+    <tr{% if d.show_sent_header %} class="batch-start"{% endif %}>
       <td>{{ d.status }}</td>
       <td class="subject" title="{{ d.subject }}">{{ d.subject }}</td>
       <td class="subject muted" title="{{ d.sender }}">{{ d.sender }}</td>
-      <td class="muted">{{ (d.sent_at or '')[:16].replace('T', ' ') }}</td>
+      <td class="muted">{{ (d.gmail_date or '')[:10] }}</td>
+      <td class="muted">{{ (d.batch_started_at or '')[:16].replace('T', ' ') if d.show_sent_header else '' }}</td>
       <td class="muted">{{ d.digest_id or '' }}</td>
     </tr>
     {% endfor %}

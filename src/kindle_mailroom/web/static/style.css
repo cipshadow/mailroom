@@ -102,6 +102,9 @@ table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
 td.subject { max-width: 24rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Marks the first row of a send batch, so rows from one job run read as a
+   group instead of each repeating an identical "Sent" timestamp. */
+tr.batch-start td { border-top: 2px solid var(--line); }
 
 .joblog {
   background: var(--page);

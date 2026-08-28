@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kindle-mailroom"
-version = "0.3.4"
+version = "0.4.0"
 description = "Send labeled Gmail newsletters and web articles to your Kindle as clean EPUBs."
 readme = "README.md"
 license = { text = "MIT" }
@@ -35,6 +35,11 @@ dependencies = [
     "requests>=2.31",
     "flask>=3.0",
     "platformdirs>=4.0",
+    # Desktop-build-only: gives the packaged .app/.exe a real native window
+    # instead of opening the system browser (see kindle_mailroom/desktop.py).
+    # Not needed for the pip/pipx CLI, but harmless there - skip it on Linux,
+    # which never ships a desktop build (see .github/workflows/release.yml).
+    "pywebview>=5.0; sys_platform != 'linux'",
 ]
 
 [project.optional-dependencies]

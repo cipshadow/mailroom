@@ -34,7 +34,8 @@ class Store:
               read_at text,
               kindle_email text,
               digest_id text,
-              sender_domain text
+              sender_domain text,
+              batch_id text
             )
             """
         )
@@ -44,6 +45,11 @@ class Store:
         except sqlite3.OperationalError:
             self.conn.execute("alter table deliveries add column digest_id text")
             self.conn.execute("alter table deliveries add column sender_domain text")
+        # migrate a pre-batch database if needed
+        try:
+            self.conn.execute("select batch_id from deliveries limit 1")
+        except sqlite3.OperationalError:
+            self.conn.execute("alter table deliveries add column batch_id text")
 
     def close(self) -> None:
         self.conn.close()
@@ -58,7 +64,7 @@ class Store:
     def digest_already_sent(self, message_ids: list[str]) -> bool:
         return any(
             self.conn.execute(
-                "select digest_id from deliveries where gmail_message_id = ? and digest_id is not null",
+                "select status from deliveries where gmail_message_id = ? and status in ('sent', 'read')",
                 (message_id,),
             ).fetchone()
             for message_id in message_ids
@@ -71,21 +77,23 @@ class Store:
         kindle_email: str,
         digest_id: str | None = None,
         sender_domain: str | None = None,
+        batch_id: str | None = None,
     ) -> None:
         self.conn.execute(
             """
             insert into deliveries (
               gmail_message_id, thread_id, subject, sender, gmail_date, status,
-              epub_path, sent_at, kindle_email, digest_id, sender_domain
+              epub_path, sent_at, kindle_email, digest_id, sender_domain, batch_id
             )
-            values (?, ?, ?, ?, ?, 'sent', ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, 'sent', ?, ?, ?, ?, ?, ?)
             on conflict(gmail_message_id) do update set
               status = 'sent',
               epub_path = excluded.epub_path,
               sent_at = excluded.sent_at,
               kindle_email = excluded.kindle_email,
               digest_id = excluded.digest_id,
-              sender_domain = excluded.sender_domain
+              sender_domain = excluded.sender_domain,
+              batch_id = excluded.batch_id
             """,
             (
                 message.message_id,
@@ -98,18 +106,19 @@ class Store:
                 kindle_email,
                 digest_id,
                 sender_domain or extract_sender_domain(message.sender),
+                batch_id,
             ),
         )
         self.conn.commit()
 
     def record_url_sent(self, url: str, title: str, epub_path: Path,
-                        kindle_email: str, gmail_id: str) -> None:
+                        kindle_email: str, gmail_id: str, batch_id: str | None = None) -> None:
         self.conn.execute(
             """
             insert or replace into deliveries
               (gmail_message_id, thread_id, subject, sender, gmail_date,
-               status, epub_path, sent_at, kindle_email, sender_domain)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               status, epub_path, sent_at, kindle_email, sender_domain, batch_id)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 f"url:{url}",
@@ -122,6 +131,7 @@ class Store:
                 now_iso(),
                 kindle_email,
                 url.split("/")[2] if "/" in url else url,
+                batch_id,
             ),
         )
         self.conn.commit()
@@ -129,14 +139,14 @@ class Store:
     def list_deliveries(self, limit: int = 200) -> list[dict]:
         rows = self.conn.execute(
             """
-            select gmail_message_id, subject, sender, status, sent_at, read_at, digest_id
+            select gmail_message_id, subject, sender, status, sent_at, read_at, digest_id, gmail_date, batch_id
             from deliveries
             order by coalesce(read_at, sent_at) desc
             limit ?
             """,
             (limit,),
         ).fetchall()
-        keys = ["message_id", "subject", "sender", "status", "sent_at", "read_at", "digest_id"]
+        keys = ["message_id", "subject", "sender", "status", "sent_at", "read_at", "digest_id", "gmail_date", "batch_id"]
         return [dict(zip(keys, row)) for row in rows]
 
     def sent_message_ids(self) -> list[tuple[str, str]]:
