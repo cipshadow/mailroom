@@ -114,6 +114,39 @@ def test_message_ids_restricts_send_to_the_selected_subset(monkeypatch):
     assert sent_ids == ["Post A", "Post C"], "m2 was left unchecked, so it must not be sent"
 
 
+def test_message_ids_filter_applies_before_digest_grouping(monkeypatch):
+    # The review screen's selection must survive into digest mode too:
+    # message_ids filtering happens once, before group_messages_by_sender_week
+    # - an unchecked message must not ride along in its sender's digest, and
+    # a sender with everything unchecked must produce no digest at all.
+    messages = [
+        _digest_message("Lenny's Newsletter <lenny@substack.com>", "Checked post", "m1"),
+        _digest_message("Lenny's Newsletter <lenny@substack.com>", "Unchecked post", "m2"),
+        _digest_message("Platformer <casey@substack.com>", "Fully excluded sender", "m3"),
+    ]
+    monkeypatch.setattr(pipeline.gc, "fetch_labelled_messages", lambda *a, **kw: messages)
+    monkeypatch.setattr(pipeline.gc, "move_to_sent_label", lambda *a, **kw: None)
+
+    sent_titles = []
+    monkeypatch.setattr(
+        pipeline.gc, "send_epub_to_kindle",
+        lambda service, epub_path, title, from_address, kindle_email: sent_titles.append(title),
+    )
+
+    config = Config()
+    config.digest = True
+    store = Store(db_path())
+    try:
+        report = pipeline.send_labelled(
+            None, store, config, message_ids={"m1"}, progress=lambda _: None,
+        )
+    finally:
+        store.close()
+
+    assert report.sent == 1, "one digest for Lenny's (m1 only); Platformer gets none at all"
+    assert sent_titles == ["Lenny's Newsletter - 06 Jul digest"]
+
+
 def _digest_message(sender, subject, msg_id):
     return GmailMessage(
         message_id=msg_id, thread_id=msg_id, subject=subject, sender=sender,
