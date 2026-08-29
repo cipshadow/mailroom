@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] — 2026-08-29
+
+### Changed
+- **Google sign-in success page now says what to do next.** Since OAuth
+  opens in the system browser (0.4.1), finishing it lands you on a
+  confirmation page in a new browser tab, separate from the desktop app's
+  own window - previously silent about this, which read as a dead end. It
+  now says plainly: you're connected, close this tab, switch back to the
+  app.
+
 ## [0.4.2] — 2026-08-29
 
 ### Changed
