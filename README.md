@@ -81,9 +81,10 @@ It walks you through two one-time things:
 
 ## Daily use
 
-Label an email `Mailroom/Send next 📤` in Gmail, press **Send now**, and it
-lands on your Kindle within a few minutes. The wizard shows you how to apply a
-label on web and mobile, and how to have Gmail label a newsletter automatically.
+Label an email `Mailroom/Send next 📤` in Gmail, press **Review & send**, check
+what's about to go out, and it lands on your Kindle within a few minutes. The
+wizard shows you how to apply a label on web and mobile, and how to have Gmail
+label a newsletter automatically.
 
 ![Labelling help in the wizard](docs/images/label-howto.png)
 
