@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] — 2026-08-29
+
+### Added
+- **Review before sending.** "Send now" no longer fires immediately - it
+  first shows every email currently labelled and not yet sent (subject,
+  sender, date received - date only, no time), each with a checkbox,
+  everything checked by default. Uncheck anything you don't want sent this
+  time; leaving it all checked behaves exactly like the old immediate-send
+  button. Digest/single mode and the dry-run toggle moved to this screen.
+  The scheduler and CLI are unaffected - only the dashboard's manual send
+  goes through review.
+
 ## [0.4.3] — 2026-08-29
 
 ### Changed

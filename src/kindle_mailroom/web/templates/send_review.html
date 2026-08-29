@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Review before sending · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Review before sending</h1>
+
+{% if messages %}
+<form method="post" action="{{ url_for('dashboard.send_now') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="reviewed" value="1">
+
+  <div class="card">
+    <p class="muted">
+      {{ messages|length }} email(s) labeled “{{ config.source_label }}”
+      {% if config.unread_only %}(unread only) {% endif %}are ready to send.
+      Everything's checked by default — uncheck anything you don't want sent
+      this time.
+    </p>
+    <p>
+      <button type="button" class="link-button" onclick="setAll(true)">Select all</button>
+      &middot;
+      <button type="button" class="link-button" onclick="setAll(false)">Select none</button>
+    </p>
+    <table>
+      <tr><th></th><th>Subject</th><th>From</th><th>Received</th></tr>
+      {% for m in messages %}
+      <tr>
+        <td><input type="checkbox" name="message_id" value="{{ m.message_id }}" checked></td>
+        <td class="subject" title="{{ m.subject }}">{{ m.subject }}</td>
+        <td class="subject muted" title="{{ m.sender }}">{{ m.sender }}</td>
+        <td class="muted">{{ (m.date or '')[:10] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="card">
+    <label class="inline"><input type="radio" name="mode" value="single" {% if not config.digest %}checked{% endif %}> One per email</label>
+    <label class="inline"><input type="radio" name="mode" value="digest" {% if config.digest %}checked{% endif %}> Weekly digest</label>
+    <br>
+    <label class="inline"><input type="checkbox" name="dry_run">
+      Build without sending (dry run) — writes the EPUB to your data folder
+      instead of emailing it, so you can preview it first</label>
+    <br>
+    <button type="submit" {% if job_busy %}disabled{% endif %}>Send selected</button>
+    <a class="btn secondary" href="{{ url_for('dashboard.index') }}">Cancel</a>
+  </div>
+</form>
+
+<script>
+function setAll(checked) {
+  document.querySelectorAll('input[name="message_id"]').forEach(function (box) {
+    box.checked = checked;
+  });
+}
+</script>
+{% else %}
+<div class="card">
+  <p class="muted">
+    Nothing labeled “{{ config.source_label }}”
+    {% if config.unread_only %}(unread only) {% endif %}right now — nothing to send.
+  </p>
+  <a class="btn secondary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+</div>
+{% endif %}
+{% endblock %}

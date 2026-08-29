@@ -32,12 +32,16 @@ def send_labelled(
     resend: bool = False,
     limit: int | None = None,
     unread_only: bool | None = None,
+    message_ids: set[str] | None = None,
     progress: ProgressFn = print,
 ) -> SendReport:
     """Send emails carrying the source label to the Kindle address.
 
     limit/unread_only fall back to the config values when None; a limit of 0
-    means "everything labelled"."""
+    means "everything labelled". message_ids, when given, restricts the run
+    to that subset of what's fetched - the dashboard's review screen sends
+    the messages the user actually left checked, rather than everything
+    fetch_labelled_messages found."""
     use_digest = config.digest if digest is None else digest
     effective_limit = config.send_limit if limit is None else limit
     effective_unread = config.unread_only if unread_only is None else unread_only
@@ -45,6 +49,9 @@ def send_labelled(
         service, config.source_label, effective_limit, effective_unread
     )
     progress(f"Found {len(messages)} message(s) in \"{config.source_label}\"")
+    if message_ids is not None:
+        messages = [m for m in messages if m.message_id in message_ids]
+        progress(f"{len(messages)} selected for sending")
     batch_id = now_iso()
     if use_digest:
         return _send_digest_mode(service, store, config, messages, batch_id,
