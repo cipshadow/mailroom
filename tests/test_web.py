@@ -417,9 +417,10 @@ def test_send_work_passes_dry_run_through_to_pipeline(monkeypatch):
 
     captured = {}
 
-    def fake_send_labelled(service, store, config, *, digest, dry_run, progress):
+    def fake_send_labelled(service, store, config, *, digest, dry_run, message_ids, progress):
         captured["dry_run"] = dry_run
         captured["digest"] = digest
+        captured["message_ids"] = message_ids
         return SendReport(dry_run=dry_run)
 
     monkeypatch.setattr(dashboard.auth, "load_credentials", lambda: object())
@@ -432,11 +433,109 @@ def test_send_work_passes_dry_run_through_to_pipeline(monkeypatch):
 
     work = dashboard._send_work(digest_override=None, dry_run=True)
     work(FakeJob())
-    assert captured == {"dry_run": True, "digest": None}
+    assert captured == {"dry_run": True, "digest": None, "message_ids": None}
 
-    work = dashboard._send_work(digest_override=True, dry_run=False)
+    work = dashboard._send_work(digest_override=True, dry_run=False, message_ids={"m1"})
     work(FakeJob())
-    assert captured == {"dry_run": False, "digest": True}
+    assert captured == {"dry_run": False, "digest": True, "message_ids": {"m1"}}
+
+
+def test_send_review_lists_messages_with_date_only(client, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.core.models import GmailMessage
+    from kindle_mailroom.web.views import dashboard
+
+    messages = [
+        GmailMessage(message_id="m1", thread_id="t1", subject="Older post",
+                     sender="A <a@example.com>", date="2026-08-01T09:30:00+00:00", html_body=""),
+        GmailMessage(message_id="m2", thread_id="t2", subject="Newer post",
+                     sender="B <b@example.com>", date="2026-08-20T14:00:00+00:00", html_body=""),
+    ]
+    monkeypatch.setattr(dashboard, "fetch_labelled_messages", lambda *a, **kw: messages)
+
+    resp = client.get("/send/review", base_url="http://localhost:8377")
+    assert resp.status_code == 200
+    body = resp.data.decode()
+    # newest-first, and no hour/minute anywhere on the page
+    assert body.index("Newer post") < body.index("Older post")
+    assert "2026-08-20</td>" in body
+    assert "09:30" not in body and "14:00" not in body
+    # both checkboxes present and checked by default
+    assert body.count('type="checkbox" name="message_id"') == 2
+    assert 'name="message_id" value="m1" checked' in body
+    assert 'name="message_id" value="m2" checked' in body
+
+
+def test_send_review_empty_shows_nothing_to_send(client, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.web.views import dashboard
+
+    monkeypatch.setattr(dashboard, "fetch_labelled_messages", lambda *a, **kw: [])
+    resp = client.get("/send/review", base_url="http://localhost:8377")
+    assert resp.status_code == 200
+    assert b"nothing to send" in resp.data
+
+
+def test_send_now_only_sends_the_checked_subset(client, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.core.models import SendReport
+    from kindle_mailroom.web.jobs import Job, JobRunner
+    from kindle_mailroom.web.views import dashboard
+
+    captured = {}
+
+    def fake_send_labelled(service, store, config, *, digest, dry_run, message_ids, progress):
+        captured["message_ids"] = message_ids
+        return SendReport()
+
+    monkeypatch.setattr(dashboard.pipeline, "send_labelled", fake_send_labelled)
+    monkeypatch.setattr(dashboard.auth, "load_credentials", lambda: object())
+    monkeypatch.setattr(dashboard, "build_service", lambda creds: object())
+
+    def sync_submit(self, kind, work):
+        # Runs the job inline instead of on a background thread, so the
+        # assertion below doesn't race a real worker thread.
+        job = Job(kind=kind)
+        job.result = work(job) or "done"
+        job.state = "done"
+        self.current = job
+        return job
+
+    monkeypatch.setattr(JobRunner, "submit", sync_submit)
+
+    resp = client.post(
+        "/send", data={"csrf_token": _csrf(client), "reviewed": "1", "message_id": ["m1", "m3"]},
+        base_url="http://localhost:8377", follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert captured["message_ids"] == {"m1", "m3"}
+
+
+def test_send_now_with_nothing_checked_sends_nothing(client, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.web.views import dashboard
+
+    called = []
+    monkeypatch.setattr(dashboard.pipeline, "send_labelled", lambda *a, **kw: called.append(1))
+
+    resp = client.post(
+        "/send", data={"csrf_token": _csrf(client), "reviewed": "1"},
+        base_url="http://localhost:8377", follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert called == [], "an empty selection must not trigger a send"
+    assert b"Nothing selected" in resp.data
+
+
+def _csrf(client):
+    # Every page carries a csrf_token via base.html's footer Quit form, so
+    # the dashboard index is a safe source - unlike /send/review, it never
+    # touches the Gmail API.
+    resp = client.get("/", base_url="http://localhost:8377")
+    import re
+
+    match = re.search(rb'name="csrf_token" value="([^"]+)"', resp.data)
+    return match.group(1).decode()
 
 
 # --- settings ----------------------------------------------------------------

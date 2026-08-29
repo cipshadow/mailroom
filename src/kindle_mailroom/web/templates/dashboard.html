@@ -26,17 +26,10 @@
   <div class="card">
     <h2 style="margin-top:0">Send to Kindle</h2>
     <p class="muted">Sends {% if config.unread_only %}unread {% endif %}emails labeled “{{ config.source_label }}”.</p>
-    <form method="post" action="{{ url_for('dashboard.send_now') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <label class="inline"><input type="radio" name="mode" value="single" checked> One per email</label>
-      <label class="inline"><input type="radio" name="mode" value="digest"> Weekly digest</label>
-      <br>
-      <label class="inline"><input type="checkbox" name="dry_run">
-        Build without sending (dry run) — writes the EPUB to your data folder
-        instead of emailing it, so you can preview it first</label>
-      <br>
-      <button type="submit" {% if job_busy %}disabled{% endif %}>Send now</button>
-    </form>
+    <a class="btn" href="{{ url_for('dashboard.send_review') }}"
+       {% if job_busy %}aria-disabled="true" onclick="return false;"{% endif %}>Send now</a>
+    <p class="hint">Shows what would be sent first, so you can uncheck anything —
+      everything's included by default.</p>
     <form method="post" action="{{ url_for('dashboard.send_test') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <button type="submit" class="secondary" {% if job_busy %}disabled{% endif %}>Send a test document</button>

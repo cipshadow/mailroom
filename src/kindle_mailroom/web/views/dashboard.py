@@ -7,7 +7,7 @@ from flask import Blueprint, current_app, flash, jsonify, redirect, render_templ
 from ...config import Config, db_path, epub_dir
 from ...core import auth, pipeline
 from ...core.epub_build import url_to_epub
-from ...core.gmail_client import build_service, send_epub_to_kindle
+from ...core.gmail_client import build_service, fetch_labelled_messages, send_epub_to_kindle
 from ...core.store import Store
 from ..jobs import JobBusyError, JobRunner
 from ..scheduler import is_due
@@ -76,7 +76,7 @@ def index():
     )
 
 
-def _send_work(digest_override: bool | None, dry_run: bool):
+def _send_work(digest_override: bool | None, dry_run: bool, message_ids: set[str] | None = None):
     def work(job):
         config = Config.load()
         service = build_service(auth.load_credentials())
@@ -84,13 +84,42 @@ def _send_work(digest_override: bool | None, dry_run: bool):
         try:
             report = pipeline.send_labelled(
                 service, store, config,
-                digest=digest_override, dry_run=dry_run, progress=job.log_line,
+                digest=digest_override, dry_run=dry_run, message_ids=message_ids,
+                progress=job.log_line,
             )
         finally:
             store.close()
         return report.summary()
 
     return work
+
+
+@bp.route("/send/review")
+def send_review():
+    """What "Send now" fetches, so you can uncheck anything before it
+    actually goes - everything defaults checked, so doing nothing here
+    behaves exactly like the old immediate-send button."""
+    config = Config.load()
+    try:
+        service = build_service(auth.load_credentials())
+        messages = fetch_labelled_messages(
+            service, config.source_label, config.send_limit, config.unread_only
+        )
+    except auth.NotAuthenticatedError:
+        flash("Connect your Google account first.", "error")
+        return redirect(url_for("dashboard.index"))
+    except Exception as exc:
+        current_app.logger.warning("Could not fetch messages to review", exc_info=True)
+        flash(f"Couldn't fetch messages to review ({exc}).", "error")
+        return redirect(url_for("dashboard.index"))
+
+    messages.sort(key=lambda m: m.date or "", reverse=True)
+    return render_template(
+        "send_review.html",
+        config=config,
+        messages=messages,
+        job_busy=_runner().busy,
+    )
 
 
 @bp.route("/send", methods=["POST"])
@@ -101,8 +130,17 @@ def send_now():
     elif request.form.get("mode") == "single":
         digest_override = False
     dry_run = bool(request.form.get("dry_run"))
+
+    message_ids = None
+    if request.form.get("reviewed"):
+        selected = request.form.getlist("message_id")
+        if not selected:
+            flash("Nothing selected — nothing was sent.", "error")
+            return redirect(url_for("dashboard.send_review"))
+        message_ids = set(selected)
+
     try:
-        _runner().submit("send", _send_work(digest_override, dry_run))
+        _runner().submit("send", _send_work(digest_override, dry_run, message_ids))
     except JobBusyError:
         flash("A job is already running — wait for it to finish.", "error")
     return redirect(url_for("dashboard.index"))

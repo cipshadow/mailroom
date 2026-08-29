@@ -80,6 +80,40 @@ def test_send_labelled_follows_config_for_limit_and_unread(monkeypatch):
     assert seen == {"limit": 3, "unread_only": False}
 
 
+def test_message_ids_restricts_send_to_the_selected_subset(monkeypatch):
+    # The dashboard's review screen lets the user uncheck emails before
+    # sending - message_ids is how that selection reaches the pipeline.
+    # Everything fetch_labelled_messages finds should still be fetched
+    # (limit/unread_only are unaffected), but only the selected subset
+    # should actually get sent.
+    messages = [
+        _digest_message("Sender A <a@example.com>", "Post A", "m1"),
+        _digest_message("Sender B <b@example.com>", "Post B", "m2"),
+        _digest_message("Sender C <c@example.com>", "Post C", "m3"),
+    ]
+    monkeypatch.setattr(pipeline.gc, "fetch_labelled_messages", lambda *a, **kw: messages)
+    monkeypatch.setattr(pipeline.gc, "move_to_sent_label", lambda *a, **kw: None)
+
+    sent_ids = []
+    monkeypatch.setattr(
+        pipeline.gc, "send_epub_to_kindle",
+        lambda service, epub_path, title, from_address, kindle_email: sent_ids.append(title),
+    )
+
+    config = Config()
+    config.digest = False
+    store = Store(db_path())
+    try:
+        report = pipeline.send_labelled(
+            None, store, config, message_ids={"m1", "m3"}, progress=lambda _: None,
+        )
+    finally:
+        store.close()
+
+    assert report.sent == 2
+    assert sent_ids == ["Post A", "Post C"], "m2 was left unchecked, so it must not be sent"
+
+
 def _digest_message(sender, subject, msg_id):
     return GmailMessage(
         message_id=msg_id, thread_id=msg_id, subject=subject, sender=sender,
