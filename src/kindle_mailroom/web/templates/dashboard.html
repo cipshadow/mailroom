@@ -27,7 +27,7 @@
     <h2 style="margin-top:0">Send to Kindle</h2>
     <p class="muted">Sends {% if config.unread_only %}unread {% endif %}emails labeled “{{ config.source_label }}”.</p>
     <a class="btn" href="{{ url_for('dashboard.send_review') }}"
-       {% if job_busy %}aria-disabled="true" onclick="return false;"{% endif %}>Send now</a>
+       {% if job_busy %}aria-disabled="true" onclick="return false;"{% endif %}>Review &amp; send</a>
     <p class="hint">Shows what would be sent first, so you can uncheck anything —
       everything's included by default.</p>
     <form method="post" action="{{ url_for('dashboard.send_test') }}">
@@ -62,7 +62,7 @@
   </table>
   <p><a href="{{ url_for('dashboard.history') }}">Full history →</a></p>
   {% else %}
-  <p class="muted">Nothing sent yet. Label an email “{{ config.source_label }}” in Gmail and press Send now.</p>
+  <p class="muted">Nothing sent yet. Label an email “{{ config.source_label }}” in Gmail and press Review &amp; send.</p>
   {% endif %}
 </div>
 

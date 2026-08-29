@@ -30,7 +30,7 @@ def _auth_status() -> tuple[bool, str]:
 def _mark_batch_headers(deliveries: list[dict]) -> list[dict]:
     """Flag the first row of each consecutive run sharing a batch_id, so the
     template can show the send timestamp once per job run instead of once
-    per row - rows from one "Send now" click are otherwise indistinguishable
+    per row - rows from one "Review & send" run are otherwise indistinguishable
     from unrelated sends at a glance. Rows without a batch_id (sent before
     this tracking existed) always get their own header.
 
@@ -96,7 +96,7 @@ def _send_work(digest_override: bool | None, dry_run: bool, message_ids: set[str
 
 @bp.route("/send/review")
 def send_review():
-    """What "Send now" fetches, so you can uncheck anything before it
+    """What "Review & send" fetches, so you can uncheck anything before it
     actually goes - everything defaults checked, so doing nothing here
     behaves exactly like the old immediate-send button."""
     config = Config.load()
