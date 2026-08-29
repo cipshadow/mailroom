@@ -62,7 +62,7 @@
     {% if has_token %}Connected as <strong>{{ config.gmail_address }}</strong>.
     {% else %}<span class="badge badge-err">not connected</span>{% endif %}
   </p>
-  <a class="btn secondary" href="{{ url_for('setup.oauth_start') }}">Reconnect Google account</a>
+  <a class="btn secondary" href="{{ url_for('setup.oauth_start') }}" target="_blank" rel="noopener">Reconnect Google account</a>
   <form method="post" action="{{ url_for('settings.forget') }}" style="display:inline"
         onsubmit="return confirm('Delete the stored Google token and OAuth client from this machine?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
