@@ -167,7 +167,11 @@ def oauth_callback():
     config.save()
 
     flash(f"Connected as {gmail_address}.", "ok")
-    return redirect(url_for("setup.start"))
+    # oauth_start opens in the system browser on purpose (see setup.html) -
+    # in the desktop app this success page lands in a new Chrome/Safari tab,
+    # separate from the app's own window, which reads as a dead end unless
+    # we say so explicitly. oauth_done tells the template to show that.
+    return redirect(url_for("setup.start", oauth_done=1))
 
 
 @bp.route("/setup/settings", methods=["POST"])

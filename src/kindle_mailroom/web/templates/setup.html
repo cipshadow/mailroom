@@ -17,6 +17,14 @@
   {% if step > 3 %}Setup complete — you're ready to send.{% else %}Step {{ step }} of 3{% endif %}
 </p>
 
+{% if request.args.get('oauth_done') %}
+<div class="flash flash-ok">
+  You're connected. This finished in your regular browser, not the Kindle
+  Mailroom app window — you can close this tab now and switch back to it
+  to continue.
+</div>
+{% endif %}
+
 <div class="card wizard-step {{ 'active' if step == 1 else 'done' }}">
   <h2>Step 1 — Your Google key {% if step > 1 %}<span class="badge badge-ok">done</span>{% endif %}</h2>
   {% if step == 1 %}
