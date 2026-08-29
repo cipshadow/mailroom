@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import re
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from googleapiclient.errors import HttpError
 
 from ...config import DEFAULT_SOURCE_LABEL, Config, is_kindle_address
 from ...core import auth
@@ -122,6 +124,35 @@ def oauth_callback():
     # message and no way out but reconnecting.
     try:
         gmail_address = get_profile_email(build_service(creds))
+    except HttpError as exc:
+        current_app.logger.warning("Could not read Gmail address after sign-in", exc_info=True)
+        # The single most common first-run mistake: the OAuth client works
+        # fine, but the Gmail API was never actually enabled (or was
+        # enabled in a different project) for the Google Cloud project
+        # behind it. Google's own error names the project number, so surface
+        # a direct, actionable link instead of the raw error dump - the
+        # generic message below still fires for anything else.
+        if getattr(exc, "status_code", None) == 403 and "accessNotConfigured" in str(exc):
+            project = re.search(r"project[=/](\d+)", str(exc))
+            enable_url = (
+                f"https://console.cloud.google.com/apis/api/gmail.googleapis.com/overview?project={project.group(1)}"
+                if project
+                else "https://console.cloud.google.com/apis/library/gmail.googleapis.com"
+            )
+            flash(
+                "Signed in, but the Gmail API isn't turned on yet for your Google "
+                f"Cloud project. Go to {enable_url}, click Enable, wait until the "
+                "button changes to \"Manage\" (that's your confirmation it's really "
+                "on), then press Connect Google again.",
+                "error",
+            )
+        else:
+            flash(
+                "Signed in, but we couldn't read your Gmail address "
+                f"({exc}). Press Connect Google again to finish.",
+                "error",
+            )
+        return redirect(url_for("setup.start"))
     except Exception as exc:
         current_app.logger.warning("Could not read Gmail address after sign-in", exc_info=True)
         flash(
