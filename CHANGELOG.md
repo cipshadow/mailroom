@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] — 2026-08-29
+
+First stable release. No functional changes from 0.4.5 - this marks the
+desktop app, review-before-sending, and dedup fixes from the 0.4.x line as
+production-ready.
+
 ## [0.4.5] — 2026-08-29
 
 ### Changed

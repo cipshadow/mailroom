@@ -1,3 +1,3 @@
 """Kindle Mailroom — send labeled Gmail newsletters and web articles to your Kindle."""
 
-__version__ = "0.4.5"
+__version__ = "1.0.0"
