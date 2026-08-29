@@ -346,6 +346,65 @@ def test_oauth_pkce_code_verifier_round_trips(client, monkeypatch):
     assert b"Connected as me@gmail.com" in resp.data
 
 
+def test_oauth_callback_surfaces_gmail_api_disabled_with_direct_link(client, monkeypatch):
+    # Regression: this used to dump the raw HttpError - a wall of nested
+    # JSON - into the flash message. Forgetting to click "Enable" on the
+    # Gmail API page is the single most common first-run mistake (found by
+    # actually running the fresh-install flow), so this case gets a short,
+    # actionable message with a direct link built from the project number
+    # Google's own error names, instead of the generic fallback.
+    import httplib2
+    from googleapiclient.errors import HttpError
+
+    cfg.write_private(cfg.client_secret_path(), json.dumps(
+        {"installed": {"client_id": "id", "client_secret": "secret",
+                       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                       "token_uri": "https://oauth2.googleapis.com/token"}}))
+
+    resp = client.get("/setup/oauth", base_url="http://localhost:8377")
+    with client.session_transaction() as session:
+        state = session["oauth_state"]
+
+    import time
+
+    from requests_oauthlib import OAuth2Session
+
+    def fake_fetch_token(self, token_url, **kwargs):
+        self.token = {"access_token": "x", "refresh_token": "r", "expires_at": time.time() + 3600}
+        self.scope = auth.SCOPES
+        return self.token
+
+    message = (
+        "Gmail API has not been used in project 419490807757 before or it is "
+        "disabled. Enable it by visiting https://console.developers.google.com/"
+        "apis/api/gmail.googleapis.com/overview?project=419490807757 then retry."
+    )
+    content = json.dumps({"error": {
+        "code": 403, "message": message,
+        "errors": [{"message": message, "domain": "usageLimits", "reason": "accessNotConfigured"}],
+    }}).encode()
+    api_disabled = HttpError(
+        httplib2.Response({"status": 403}), content,
+        uri="https://gmail.googleapis.com/gmail/v1/users/me/profile",
+    )
+
+    def fake_profile(service):
+        raise api_disabled
+
+    monkeypatch.setattr(OAuth2Session, "fetch_token", fake_fetch_token)
+    monkeypatch.setattr("kindle_mailroom.web.views.setup.get_profile_email", fake_profile)
+    monkeypatch.setattr("kindle_mailroom.web.views.setup.build_service", lambda creds: object())
+
+    resp = client.get(
+        f"/oauth2/callback?state={state}&code=fakecode",
+        base_url="http://localhost:8377", follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert b"click Enable" in resp.data
+    assert b"project=419490807757" in resp.data
+    assert b"usageLimits" not in resp.data  # not the raw error dump anymore
+
+
 # --- dashboard: dry run -------------------------------------------------------
 
 def test_send_work_passes_dry_run_through_to_pipeline(monkeypatch):

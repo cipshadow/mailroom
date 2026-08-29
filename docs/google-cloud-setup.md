@@ -13,10 +13,24 @@ sure your new project stays selected as you go.
    Google Workspace org; for a personal Gmail account it's the only option
    anyway, and it has no effect on how the app works).
 2. **[Enable the Gmail API](https://console.cloud.google.com/flows/enableapi?apiid=gmail.googleapis.com)**
-   → click **Enable**, and wait for the page to confirm it's on before
-   moving to the next step. If you hit an "API has not been used in this
-   project" error later, you either skipped clicking Enable or need to wait
-   a few minutes for it to take effect — retry after that, not immediately.
+   for the project you just created.
+
+   > ⚠️ **This is the step people miss.** The page loads with an **Enable**
+   > button front and center — you have to actually click it, not just land
+   > on the page. Nothing on the page auto-enables the API for you.
+   >
+   > **You're not done until the button itself changes.** After clicking
+   > Enable, wait for the page to reload — it now shows a **Manage** button
+   > and a usage graph instead of Enable. That's your confirmation. If you
+   > still see an **Enable** button anywhere on the page, it isn't on yet -
+   > click it again.
+   >
+   > If you skip this and try to connect Kindle Mailroom anyway, you'll get
+   > an error naming your project number, e.g. *"Gmail API has not been
+   > used in project 123456789...".* Fix: go back to this same page (using
+   > the project number from that error if you're not sure you're on the
+   > right project), click **Enable**, confirm it now says **Manage**, wait
+   > 2-3 minutes, then retry in Kindle Mailroom.
 3. **[Set up the consent screen](https://console.cloud.google.com/auth/overview)**
    → **Get started**. On the first page (**App Information**), name it
    **Kindle Mailroom** and use your own email as the contact. Continue
