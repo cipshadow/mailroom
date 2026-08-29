@@ -146,7 +146,10 @@ class Store:
             """,
             (limit,),
         ).fetchall()
-        keys = ["message_id", "subject", "sender", "status", "sent_at", "read_at", "digest_id", "gmail_date", "batch_id"]
+        keys = [
+            "message_id", "subject", "sender", "status", "sent_at",
+            "read_at", "digest_id", "gmail_date", "batch_id",
+        ]
         return [dict(zip(keys, row)) for row in rows]
 
     def sent_message_ids(self) -> list[tuple[str, str]]:
