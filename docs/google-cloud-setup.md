@@ -8,19 +8,31 @@ Every step below links straight to the right page. Do them in order, and make
 sure your new project stays selected as you go.
 
 1. **[Create a project](https://console.cloud.google.com/projectcreate)** —
-   any name works, e.g. `kindle-mailroom`.
+   name it **Kindle Mailroom**. Leave **Organization** set to "No
+   organization" (it only shows up if your Google account belongs to a
+   Google Workspace org; for a personal Gmail account it's the only option
+   anyway, and it has no effect on how the app works).
 2. **[Enable the Gmail API](https://console.cloud.google.com/flows/enableapi?apiid=gmail.googleapis.com)**
-   → click **Enable**.
+   → click **Enable**, and wait for the page to confirm it's on before
+   moving to the next step. If you hit an "API has not been used in this
+   project" error later, you either skipped clicking Enable or need to wait
+   a few minutes for it to take effect — retry after that, not immediately.
 3. **[Set up the consent screen](https://console.cloud.google.com/auth/overview)**
-   → **Get started**. Give the app a name (e.g. "Kindle Mailroom"), use your own
-   email as the contact, and choose audience **External**. Finish the short
-   wizard.
-4. **[Add yourself as a test user](https://console.cloud.google.com/auth/audience)**
-   → under **Test users**, click **Add users** and enter your own Gmail address.
-   You do not need to submit the app for verification — leaving it in "Testing"
-   is fine for personal use.
+   → **Get started**. On the first page (**App Information**), name it
+   **Kindle Mailroom** and use your own email as the contact. Continue
+   through the wizard's own steps until you reach **Audience** — choose
+   **External** there.
+4. **Add yourself as a test user.** Still on the **Audience** page (or via
+   **[this direct link](https://console.cloud.google.com/auth/audience)**
+   if you've already moved past it): under **Test users**, click **Add
+   users** and enter your own Gmail address. Finish the rest of the wizard.
+   You do not need to submit the app for verification — leaving it in
+   "Testing" is fine for personal use.
 5. **[Create the client](https://console.cloud.google.com/auth/clients/create)**
-   → application type **Desktop app** → **Create** → **Download JSON**.
+   → application type **Desktop app** → name it **Kindle Mailroom** (this
+   name only shows up in your own Cloud console, never to you-as-end-user,
+   but it keeps things unambiguous if you ever have more than one OAuth
+   client) → **Create** → **Download JSON**.
 
    Choose *Desktop app*, not *Web application*: desktop clients accept Kindle
    Mailroom's local redirect without you having to register a redirect URI,

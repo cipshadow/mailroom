@@ -82,7 +82,10 @@
     Click <strong>Continue</strong>, then allow the two Gmail permissions
     (<code>gmail.modify</code> and <code>gmail.send</code>).
   </p>
-  <a class="btn" href="{{ url_for('setup.oauth_start') }}">Connect Google account</a>
+  <a class="btn" href="{{ url_for('setup.oauth_start') }}" target="_blank" rel="noopener">Connect Google account</a>
+  <p class="hint">Opens in your regular browser, not this window - Google blocks
+    sign-in (passkeys especially) inside embedded app windows. Come back here
+    once you've finished.</p>
   {% elif step > 2 %}
   <p class="muted">Connected as <strong>{{ config.gmail_address }}</strong>.</p>
   {% else %}

@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2026-08-29
+
+### Fixed
+- **Desktop app: "Connect Google account" couldn't sign in.** v0.4.0's new
+  native window (see 0.4.0 below) navigated the OAuth flow inside itself
+  instead of the system browser - Google blocks passkeys and other secure
+  sign-in methods inside embedded app windows, surfacing as a generic
+  "Something went wrong" error with no way through. The two Google-account
+  links now open in your regular browser (`target="_blank"`, which
+  pywebview already routes to the system browser by default), where
+  sign-in works normally.
+- `docs/google-cloud-setup.md`: clarified the Organization field on project
+  creation (leave it as "No organization" for a personal account), and
+  recommended naming both the app and the OAuth client "Kindle Mailroom"
+  for consistency across the console.
+
 ## [0.4.0] — 2026-08-28
 
 ### Fixed
