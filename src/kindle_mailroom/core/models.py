@@ -113,7 +113,7 @@ def digest_title(sender_name: str, week_start: str) -> str:
         date_label = d.strftime("%d %b")
     except ValueError:
         date_label = week_start
-    return f"{sender_name} - {date_label} digest"
+    return f"{sender_name} - {date_label} Digest"
 
 
 def group_messages_by_sender_week(messages: list[GmailMessage]) -> dict[tuple[str, str], list[GmailMessage]]:

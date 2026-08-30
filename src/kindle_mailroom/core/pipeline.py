@@ -11,7 +11,7 @@ from typing import Callable
 
 from ..config import Config, epub_dir
 from . import gmail_client as gc
-from .epub_build import message_to_epub, messages_to_digest_epub, url_to_epub
+from .epub_build import make_safe_filename, message_to_epub, messages_to_digest_epub, url_to_epub
 from .models import GmailMessage, SendReport, digest_title, group_messages_by_sender_week
 from .sanitize import count_words
 from .store import Store, now_iso
@@ -138,7 +138,8 @@ def _send_digest_mode(service, store: Store, config: Config, messages: list[Gmai
             continue
 
         gc.send_epub_to_kindle(service, epub_path, title,
-                               config.gmail_address, config.kindle_email)
+                               config.gmail_address, config.kindle_email,
+                               attachment_filename=f"{make_safe_filename(title, 'Digest')}.epub")
         for msg in group_messages:
             # sender_domain is the store's historical column name; it now
             # holds the sender display name used to group the digest.
