@@ -130,7 +130,7 @@ def test_message_ids_filter_applies_before_digest_grouping(monkeypatch):
     sent_titles = []
     monkeypatch.setattr(
         pipeline.gc, "send_epub_to_kindle",
-        lambda service, epub_path, title, from_address, kindle_email: sent_titles.append(title),
+        lambda service, epub_path, title, from_address, kindle_email, **kw: sent_titles.append(title),
     )
 
     config = Config()
@@ -144,7 +144,7 @@ def test_message_ids_filter_applies_before_digest_grouping(monkeypatch):
         store.close()
 
     assert report.sent == 1, "one digest for Lenny's (m1 only); Platformer gets none at all"
-    assert sent_titles == ["Lenny's Newsletter - 06 Jul digest"]
+    assert sent_titles == ["Lenny's Newsletter - 06 Jul Digest"]
 
 
 def _digest_message(sender, subject, msg_id):
@@ -166,7 +166,7 @@ def test_digest_mode_groups_by_sender_not_domain(monkeypatch, tmp_path):
 
     sent_titles = []
 
-    def fake_send(service, epub_path, title, from_address, kindle_email):
+    def fake_send(service, epub_path, title, from_address, kindle_email, **kw):
         sent_titles.append(title)
         return "gmail-id"
 
@@ -185,6 +185,6 @@ def test_digest_mode_groups_by_sender_not_domain(monkeypatch, tmp_path):
 
     assert report.sent == 2, "one digest per author, not one combined digest"
     assert sorted(sent_titles) == [
-        "Lenny's Newsletter - 06 Jul digest",
-        "Platformer - 06 Jul digest",
+        "Lenny's Newsletter - 06 Jul Digest",
+        "Platformer - 06 Jul Digest",
     ]

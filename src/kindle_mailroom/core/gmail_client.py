@@ -163,7 +163,8 @@ def fetch_labelled_messages(
 
 
 def send_epub_to_kindle(service, epub_path: Path, subject: str,
-                        from_address: str, kindle_email: str) -> str:
+                        from_address: str, kindle_email: str,
+                        attachment_filename: str | None = None) -> str:
     """Email an EPUB attachment to the Kindle address. Returns the sent
     message's Gmail ID."""
     msg = MIMEMultipart()
@@ -174,7 +175,8 @@ def send_epub_to_kindle(service, epub_path: Path, subject: str,
 
     with epub_path.open("rb") as file:
         attachment = MIMEApplication(file.read(), _subtype="epub")
-    attachment.add_header("Content-Disposition", "attachment", filename=epub_path.name)
+    attachment.add_header("Content-Disposition", "attachment",
+                          filename=attachment_filename or epub_path.name)
     msg.attach(attachment)
 
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode("ascii")
