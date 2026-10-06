@@ -49,7 +49,7 @@ and logs live, how to quit, and why there's no auto-update.
 Requires **Python 3.10 or newer**.
 
 ```bash
-pipx install git+https://github.com/cipshadow/mailroom
+pipx install git+https://github.com/cipshadow/mailroom@v1.0.0
 kindle-mailroom
 ```
 
@@ -57,7 +57,7 @@ kindle-mailroom
 <summary>No pipx? Use pip, or install from a clone</summary>
 
 ```bash
-pip install git+https://github.com/cipshadow/mailroom
+pip install git+https://github.com/cipshadow/mailroom@v1.0.0
 # …or, to hack on it:
 git clone https://github.com/cipshadow/mailroom
 cd mailroom && pip install -e ".[dev]"
@@ -66,6 +66,10 @@ cd mailroom && pip install -e ".[dev]"
 
 Either way, `kindle-mailroom` with no arguments starts the local web app and
 opens your browser to the setup wizard.
+
+These commands install the current published release tag rather than the
+mutable default branch. Download a newer release or change the tag explicitly
+when you choose to upgrade.
 
 ![The setup wizard](docs/images/setup-wizard.png)
 
