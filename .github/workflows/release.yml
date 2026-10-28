@@ -116,6 +116,14 @@ jobs:
           path: assets
           merge-multiple: true
 
+      # Checksums let people verify a download. Unsigned builds make this the
+      # only integrity check available, so publish it with every release.
+      - name: Generate SHA256SUMS
+        run: |
+          cd assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - name: Extract changelog section for this tag
         id: notes
         run: |
