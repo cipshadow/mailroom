@@ -51,7 +51,7 @@ dependencies = [
 [project.optional-dependencies]
 # ruff is pinned: an unpinned linter in CI means a rule added upstream can
 # turn the build red on a commit that changed nothing.
-dev = ["pytest>=7.4", "ruff~=0.16.0"]
+dev = ["pytest>=7.4", "ruff>=0.16,<0.18"]
 
 [project.urls]
 Homepage = "https://github.com/cipshadow/mailroom"
