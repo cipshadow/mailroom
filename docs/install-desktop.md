@@ -66,3 +66,18 @@ open-source project with no revenue behind it. Rather than pass that cost on
 or skip a desktop build entirely, it ships unsigned: the OS warnings above
 are the tradeoff. The source is public; you can read exactly what you're
 running before you click through them.
+
+## Verify your download
+
+Each release includes `SHA256SUMS.txt`. Because the apps are unsigned, this is
+how you confirm the file you downloaded is the one that was published:
+
+```bash
+# macOS
+shasum -a 256 KindleMailroom-*.zip
+# Windows (PowerShell)
+Get-FileHash KindleMailroom-*.exe -Algorithm SHA256
+```
+
+Compare the result with the matching line in `SHA256SUMS.txt` from the same
+release page. If they differ, do not run the file.

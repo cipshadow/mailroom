@@ -25,6 +25,49 @@ USER_AGENT = "Mozilla/5.0"
 # needs more than this many is not worth an image.
 MAX_REDIRECTS = 3
 
+# Untrusted bytes from a newsletter: cap what we download, what we agree to
+# decode, and how many pixels the decoder may allocate. Decode only formats a
+# newsletter image can reasonably be, so exotic decoders (TIFF, FlashPix, ...)
+# never see attacker-controlled input.
+MAX_IMAGE_BYTES = 15 * 1024 * 1024
+MAX_IMAGE_PIXELS = 50_000_000
+ALLOWED_IMAGE_FORMATS = ("JPEG", "PNG", "GIF", "WEBP")
+
+
+class ImageTooLarge(Exception):
+    """The response body exceeded MAX_IMAGE_BYTES."""
+
+
+def read_capped(resp: requests.Response, limit: int | None = None) -> bytes:
+    """Read a response body, refusing anything over `limit` bytes
+    (default MAX_IMAGE_BYTES, looked up at call time).
+
+    Checks Content-Length up front, then enforces the cap while streaming so a
+    server that lies about (or omits) the length can't fill memory.
+    """
+    if limit is None:
+        limit = MAX_IMAGE_BYTES
+    declared = resp.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > limit:
+        raise ImageTooLarge(declared)
+    iter_content = getattr(resp, "iter_content", None)
+    if iter_content is None:  # minimal stand-ins used in tests
+        data = resp.content
+        if len(data) > limit:
+            raise ImageTooLarge(len(data))
+        return data
+    chunks: list[bytes] = []
+    total = 0
+    try:
+        for chunk in iter_content(chunk_size=64 * 1024):
+            total += len(chunk)
+            if total > limit:
+                raise ImageTooLarge(total)
+            chunks.append(chunk)
+    finally:
+        resp.close()
+    return b"".join(chunks)
+
 
 def is_public_url(url: str) -> bool:
     """True if url is plain http(s) pointing at a public address.
@@ -79,8 +122,10 @@ def get_if_public(url: str) -> requests.Response | None:
             headers={"User-Agent": USER_AGENT},
             timeout=10,
             allow_redirects=False,
+            stream=True,
         )
         if resp.is_redirect or resp.is_permanent_redirect:
+            resp.close()
             location = resp.headers.get("location")
             if not location:
                 return None
@@ -144,7 +189,7 @@ def fetch_image(
         resp = get_if_public(url)
         if resp is None:
             return None
-        data = resp.content
+        data = read_capped(resp)
         content_type = (resp.headers.get("content-type") or "image/jpeg").split(";")[0].strip()
     except Exception:
         return None
@@ -158,7 +203,12 @@ def fetch_image(
         return f"images/img{idx:03d}.{ext}", content_type, data, declared_width or 0, declared_height or 0
 
     try:
-        im = Image.open(io.BytesIO(data))
+        # formats= limits which decoders may run; the pixel check uses only the
+        # header, so a decompression bomb is refused before any pixels decode.
+        Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+        im = Image.open(io.BytesIO(data), formats=ALLOWED_IMAGE_FORMATS)
+        if im.size[0] * im.size[1] > MAX_IMAGE_PIXELS:
+            return None
         im.load()
     except Exception:
         return None

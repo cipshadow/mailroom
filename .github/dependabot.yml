@@ -1,0 +1,19 @@
+# Weekly update PRs so a security fix in a pinned dependency or action doesn't
+# wait for someone to remember. Security advisories open PRs immediately,
+# independent of this schedule.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      security-floor:
+        patterns: ["pillow", "certifi", "urllib3", "werkzeug", "cryptography", "oauthlib", "requests"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"

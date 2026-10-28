@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kindle-mailroom"
-version = "1.0.0"
+version = "1.0.1"
 description = "Send labeled Gmail newsletters and web articles to your Kindle as clean EPUBs."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Kindle Mailroom contributors" }]
 keywords = ["kindle", "gmail", "newsletter", "epub", "send-to-kindle"]
 classifiers = [
@@ -19,7 +19,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: Flask",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
@@ -31,7 +30,14 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "lxml>=4.9",
     "ebooklib>=0.18",
-    "Pillow>=10.0",
+    # Security floors (Oct 2026 advisories): Pillow 13 fixes heap overflows in
+    # JPEG/FlashPix decoding, certifi 2026.10.19 drops the compromised emSign
+    # roots, urllib3 2.8 fixes HTTPS-proxy and chunked-read flaws, werkzeug
+    # 3.1.9 fixes safe_join on Windows device names.
+    "Pillow>=13.0.0",
+    "certifi>=2026.10.19",
+    "urllib3>=2.8.0",
+    "werkzeug>=3.1.9",
     "requests>=2.31",
     "flask>=3.0",
     "platformdirs>=4.0",

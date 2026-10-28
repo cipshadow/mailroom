@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-10-28
+
+Security release. **v1.0.0 is superseded; please upgrade.** The v1.0.0 desktop
+builds bundle an image library and a CA certificate list with known security
+advisories, and Mailroom decodes images downloaded from newsletters and web
+articles.
+
+### Security
+- Updated bundled dependencies: Pillow 12.3.0 → 13.0.0 (fixes memory-safety
+  bugs in image decoding), certifi → 2026.10.23 (removes CA roots whose keys
+  were compromised), urllib3 → 2.8.0, werkzeug → 3.1.9, oauthlib → 4.0.0.
+- Downloaded images are now capped at 15 MB (checked up front and while
+  streaming), may only be JPEG, PNG, GIF or WEBP, and are refused above
+  50 million pixels before any pixel data is decoded.
+- Release builds now install the exact versions pinned in `uv.lock` (verified
+  by hash), so published binaries contain the dependency set that was tested.
+
+### Changed
+- **Python 3.11 or newer is required** (was 3.10). Pillow 13 dropped 3.10, and
+  3.10 reaches end of life this month. Desktop-app users are unaffected.
+- Golden-file tests now fail when a golden file is missing instead of writing it.
+- GitHub Actions are pinned by commit SHA and Dependabot is enabled.
+
 ## [1.0.0] — 2026-08-29
 
 First stable release. No functional changes from 0.4.5 - this marks the
