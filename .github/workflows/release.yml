@@ -91,13 +91,17 @@ jobs:
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
-          ditto -c -k --keepParent "dist/Kindle Mailroom.app" "KindleMailroom-${{ github.ref_name }}-${{ matrix.label }}.zip"
+          # A branch name (workflow_dispatch test builds) can contain "/"; tags never do.
+          ref="${GITHUB_REF_NAME//\//-}"
+          ditto -c -k --keepParent "dist/Kindle Mailroom.app" "KindleMailroom-${ref}-${{ matrix.label }}.zip"
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Copy-Item "dist/Kindle Mailroom.exe" "KindleMailroom-${{ github.ref_name }}-windows.exe"
+          # A branch name (workflow_dispatch test builds) can contain "/"; tags never do.
+          $ref = $env:GITHUB_REF_NAME -replace '/', '-'
+          Copy-Item "dist/Kindle Mailroom.exe" "KindleMailroom-$ref-windows.exe"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
