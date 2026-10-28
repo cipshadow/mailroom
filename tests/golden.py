@@ -106,9 +106,16 @@ def assert_golden(actual_epub: Path, case_name: str, update: bool = False) -> No
     golden_path = GOLDEN_DIR / f"{case_name}.txt"
     actual = canonicalize(actual_epub)
 
-    if update or not golden_path.exists():
+    if update:
         golden_path.write_text(actual)
         return
+    if not golden_path.exists():
+        # A missing golden must fail: silently writing it made the test pass
+        # with nothing to compare against (e.g. after a bad checkout or rename).
+        raise AssertionError(
+            f"Missing golden file for '{case_name}' ({golden_path}). "
+            "Create it deliberately with: pytest --golden-update -k " + case_name
+        )
 
     expected = golden_path.read_text()
     if actual != expected:

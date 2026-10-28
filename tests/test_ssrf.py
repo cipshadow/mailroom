@@ -115,6 +115,9 @@ def test_redirect_onto_internal_host_is_blocked(monkeypatch):
         def raise_for_status(self):
             pass
 
+        def close(self):
+            pass
+
     monkeypatch.setattr(images.requests, "get", lambda *a, **kw: _Redirect())
     monkeypatch.setattr(images.socket, "getaddrinfo", lambda *a, **kw: PUBLIC)
     assert get_if_public("https://cdn.example.com/img.png") is None
@@ -129,6 +132,9 @@ def test_redirect_chain_is_bounded(monkeypatch):
         headers = {"location": "https://cdn.example.com/next.png"}
 
         def raise_for_status(self):
+            pass
+
+        def close(self):
             pass
 
     calls = []

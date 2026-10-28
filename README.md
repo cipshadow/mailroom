@@ -46,7 +46,7 @@ and logs live, how to quit, and why there's no auto-update.
 
 ### Or: the command line (all platforms, including Linux)
 
-Requires **Python 3.10 or newer**.
+Requires **Python 3.11 or newer**.
 
 ```bash
 pipx install git+https://github.com/cipshadow/mailroom@v1.0.0
