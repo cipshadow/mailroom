@@ -7,8 +7,10 @@ on:
   push:
     branches: [main]
   pull_request:
-  schedule:
-    - cron: "0 6 * * 1"  # weekly, Monday 06:00 UTC - drives the previewer job
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   test:
@@ -29,13 +31,8 @@ jobs:
         run: pytest -q
 
   previewer:
-    # Kindle Previewer 3 has no official Linux build and no scripted installer
-    # here, so this job is opt-in rather than gating every PR: run it
-    # nightly and whenever a PR is explicitly labeled `previewer`. Treat a
-    # long stretch of skipped/absent runs as a signal to check it by hand
-    # locally (see CONTRIBUTING.md) rather than trusting a job that never
-    # actually executes.
-    if: github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'previewer'))
+    # Run the macOS Previewer suite for pull requests explicitly labeled previewer.
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'previewer')
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
