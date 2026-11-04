@@ -2,44 +2,58 @@
 
 [![CI](https://github.com/cipshadow/mailroom/actions/workflows/ci.yml/badge.svg)](https://github.com/cipshadow/mailroom/actions/workflows/ci.yml)
 
-Send your Gmail newsletters — and any web article — to your Kindle as clean,
-readable EPUBs. Label an email in Gmail, and it shows up on your Kindle.
-Runs entirely on your own machine: no server, no account, no middleman.
+Kindle Mailroom sends your Gmail newsletters — and any web article — to your
+Kindle as clean, readable EPUBs. Label an email in Gmail, and it shows up on
+your Kindle. It runs entirely on your own machine: no server, no account, no
+middleman.
+
+**Requirements:** a Mac with Apple silicon or a Windows PC for the desktop
+app (nothing else to install), or Python 3.11 or newer to run it from the
+command line. The command-line version also runs on Linux.
 
 ![The Kindle Mailroom dashboard](docs/images/dashboard.png)
 
-## Features
+## Installing
 
-- **Gmail → Kindle**: label any email (default label: `Mailroom/Send next 📤`) and
-  Kindle Mailroom converts it to a clean EPUB — strips ads, tracking pixels,
-  and layout cruft, sizes images the way the sender intended — and emails it
-  to your Kindle.
-- **Digest mode**: bundle a week's worth of emails from the same sender into
-  one document with a table of contents, instead of one file per email.
-- **URL → Kindle**: paste any article link and get the same clean-EPUB
-  treatment, no email required.
-- **Delivery history**: see what's been sent, restore items for resending.
-- **Scheduling**: automatic daily/weekly sends, or hook into your OS
-  scheduler for fully unattended delivery.
-- **Local web UI**: a setup wizard and dashboard in your browser — no config
-  files to hand-edit.
+Download the desktop app, or install it from the command line if you already
+use Python. Linux users should use the command line — there is no Linux
+desktop build.
 
-## Quickstart
+The Mac and Windows apps are not signed. It's a free open-source app built
+by an indie developer, without a paid signing certificate, and the source is
+right here. Your computer will ask you to confirm the first time you open
+it. That's expected, and you only have to do it once per download.
 
-### Download the app (macOS or Windows — no Python needed)
+### macOS
 
-1. Grab the latest build for your OS from
-   [Releases](https://github.com/cipshadow/mailroom/releases/latest) and
-   double-click it.
-2. It isn't signed with a paid developer certificate (certificates cost
-   money; this is a free, open-source project — see
-   [docs/install-desktop.md](docs/install-desktop.md#why-unsigned)), so your
-   OS will warn you the first time. This is normal:
-   - **macOS:** open it once, then go to **System Settings → Privacy &
-     Security** and click **Open Anyway**.
-   - **Windows:** click **More info**, then **Run anyway** on the SmartScreen
-     prompt.
-3. Your browser opens straight to the setup wizard below.
+1. Download the latest release from the
+   [GitHub Releases page](https://github.com/cipshadow/mailroom/releases).
+   Choose the Mac file — the zip whose name ends in `mac-arm64.zip`.
+2. Double-click the zip to open it, then move **Kindle Mailroom** into your
+   **Applications** folder.
+3. Open the app. macOS says it can't verify the developer:
+   - **macOS 15 Sequoia and later:** go to **System Settings**, then
+     **Privacy & Security**, scroll down, and click **Open Anyway**.
+     Confirm when macOS asks.
+   - **Older macOS:** right-click the app and choose **Open**.
+
+Prefer Terminal? Run this once, then open the app normally:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Kindle Mailroom.app"
+```
+
+The app opens the setup wizard.
+
+### Windows
+
+1. Download the latest release from the
+   [GitHub Releases page](https://github.com/cipshadow/mailroom/releases).
+   Choose the Windows file (the `.exe`).
+2. Open it. SmartScreen says Windows protected your PC. Click **More info**,
+   then **Run anyway**.
+
+The app opens the setup wizard.
 
 See [docs/install-desktop.md](docs/install-desktop.md) for where your data
 and logs live, how to quit, and why there's no auto-update.
@@ -83,6 +97,22 @@ It walks you through two one-time things:
    approved sender list (see [docs/amazon-kindle-setup.md](docs/amazon-kindle-setup.md)) —
    without that, Amazon silently drops everything.
 
+## Features
+
+- **Gmail → Kindle**: label any email (default label: `Mailroom/Send next 📤`) and
+  Kindle Mailroom converts it to a clean EPUB — strips ads, tracking pixels,
+  and layout cruft, sizes images the way the sender intended — and emails it
+  to your Kindle.
+- **Digest mode**: bundle a week's worth of emails from the same sender into
+  one document with a table of contents, instead of one file per email.
+- **URL → Kindle**: paste any article link and get the same clean-EPUB
+  treatment, no email required.
+- **Delivery history**: see what's been sent, restore items for resending.
+- **Scheduling**: automatic daily/weekly sends, or hook into your OS
+  scheduler for fully unattended delivery.
+- **Local web UI**: a setup wizard and dashboard in your browser — no config
+  files to hand-edit.
+
 ## Daily use
 
 Label an email `Mailroom/Send next 📤` in Gmail, press **Review & send**, check
@@ -122,10 +152,8 @@ what you point cron or launchd at.
 
 ## FAQ / Troubleshooting
 
-**My OS says the desktop app is from an "unknown publisher."** Expected —
-it isn't signed with a paid developer certificate. See
-[docs/install-desktop.md](docs/install-desktop.md) for the one-time steps
-to open it anyway, and why it's unsigned.
+**My OS says the desktop app is from an "unknown publisher."** Expected.
+See [Installing](#installing) for the one-time steps to open it anyway.
 
 **How do I quit the desktop app?** There's a **Quit** link in the footer of
 every page — it has no terminal to `Ctrl+C`.

@@ -1,9 +1,10 @@
 # Installing the desktop app
 
-This covers the macOS and Windows downloads from
-[Releases](https://github.com/cipshadow/mailroom/releases/latest). If you'd
-rather run it from a terminal (or you're on Linux), see the Quickstart in the
-[README](../README.md) instead — both paths run the exact same app.
+This covers the macOS and Windows downloads from the
+[GitHub Releases page](https://github.com/cipshadow/mailroom/releases). If you'd
+rather run it from a terminal (or you're on Linux), see [Installing](../README.md#installing)
+in the README instead — both paths run the exact same app. The short version
+for a first launch is also there; this page is the detail behind it.
 
 ## First launch
 
@@ -11,24 +12,28 @@ The app isn't signed with a paid developer certificate, so your OS shows an
 "unknown publisher" warning the first time you open it. This is expected —
 skip to [Why unsigned?](#why-unsigned) if you want the reasoning.
 
-- **macOS:** double-clicking will refuse to open it outright ("Apple could
-  not verify..."). Go to **System Settings → Privacy & Security**, scroll to
-  the message about the app being blocked, and click **Open Anyway**. Then
-  open it once more and confirm. (Power-user alternative: `xattr -d
-  com.apple.quarantine "Kindle Mailroom.app"` in Terminal, once, then open it
-  normally.)
+Move **Kindle Mailroom** into your **Applications** folder before the first
+launch on a Mac. The steps below assume that's where it lives.
+
+- **macOS:** opening it says macOS can't verify the developer.
+  - **macOS 15 Sequoia and later:** go to **System Settings**, then
+    **Privacy & Security**, scroll down, and click **Open Anyway**, then
+    confirm.
+  - **Older macOS:** right-click the app and choose **Open**.
+  - **Terminal, once:** `xattr -dr com.apple.quarantine "/Applications/Kindle Mailroom.app"`,
+    then open it normally.
 - **Windows:** SmartScreen shows "Windows protected your PC." Click **More
   info**, then **Run anyway**.
 
 Either way, this is a one-time step per download — later launches open
-normally. Your browser then opens straight to the setup wizard, same as the
-command-line version.
+normally. The app then opens the setup wizard. The command-line version
+opens that same wizard in your browser.
 
 ## Where things live
 
-There's no installer, so there's nothing to place — the app is a single
-file (Windows) or a single `.app` bundle (macOS) you can put wherever you'd
-put any app, or leave in Downloads.
+There's no installer. On a Mac, keep **Kindle Mailroom** in Applications.
+On Windows it's a single `.exe` you can run from Downloads or put wherever
+you keep programs.
 
 - **Your data** (config, Google sign-in, delivery history, generated EPUBs)
   lives in the OS-standard per-user data directory, same as the command-line
@@ -60,12 +65,12 @@ touched).
 
 ## Why unsigned?
 
-Code-signing certificates cost money every year — an Apple Developer account
-plus notarization, a separate certificate for Windows — and this is a free,
-open-source project with no revenue behind it. Rather than pass that cost on
-or skip a desktop build entirely, it ships unsigned: the OS warnings above
-are the tradeoff. The source is public; you can read exactly what you're
-running before you click through them.
+It's a free open-source app built by an indie developer, without a paid
+signing certificate, and the source is right here. Code-signing certificates
+cost money every year — an Apple Developer account (what notarization
+requires) and a separate certificate for Windows — and there's no revenue
+behind the project. Rather than pass that cost on or skip a desktop build
+entirely, the apps ship unsigned: the OS warnings above are the tradeoff.
 
 ## Verify your download
 
