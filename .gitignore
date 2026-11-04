@@ -23,3 +23,15 @@ build/
 
 # OS
 .DS_Store
+
+# Agent/session files and local secrets — never commit
+.claude/
+SESSION_LOG*
+.session-handoff.md
+CLAUDE.local.md
+.env.*
+!.env.example
+*.pem
+*.key
+.cursor/
+NOTES.local.md
