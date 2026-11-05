@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Send a file · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Send EPUB files</h1>
+<div class="card">
+  <p class="muted">
+    Pick EPUB books from this device and they go to your Kindle exactly as they are.
+    Up to {{ max_files }} files per upload, {{ max_mb }} MB each.
+  </p>
+  <form method="post" action="{{ url_for('filesend.upload') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="files">EPUB files</label>
+    <input id="files" type="file" name="files" accept=".epub,application/epub+zip" multiple required>
+    <br>
+    <label class="inline"><input type="radio" name="mode" value="review" checked> Review before sending</label>
+    <label class="inline"><input type="radio" name="mode" value="immediate"> Send immediately</label>
+    <br>
+    <label class="inline"><input type="checkbox" name="include_gmail">
+      Also send emails labeled “{{ config.source_label }}” in the same batch</label>
+    <br>
+    <button type="submit" {% if job_busy %}disabled{% endif %}>Upload</button>
+    {% if job_busy %}<p class="hint">A job is running, check the dashboard.</p>{% endif %}
+  </form>
+</div>
+{% endblock %}

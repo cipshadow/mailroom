@@ -11,8 +11,11 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from .. import __version__
 from ..config import Config
 from ..core import auth
+from ..core.epub_upload import MAX_EPUB_BYTES, MAX_FILES_PER_UPLOAD
 from .jobs import JobRunner
 from .scheduler import start_scheduler
+
+FILES_MAX_REQUEST_BYTES = MAX_EPUB_BYTES * MAX_FILES_PER_UPLOAD + 1024 * 1024
 
 # Wizard + static + OAuth callback must stay reachable before setup completes.
 # /shutdown too: a windowed desktop build has no Ctrl+C, so quitting has to
@@ -41,6 +44,9 @@ def create_app(start_background: bool = True) -> Flask:
         # CSRF: every POST must carry the session token. A malicious website
         # you visit could otherwise fire POSTs at 127.0.0.1 and send email
         # from your Gmail.
+        if request.path == "/files/upload":
+            # Book uploads are large; every other POST stays capped at 1 MB.
+            request.max_content_length = FILES_MAX_REQUEST_BYTES
         if request.method == "POST":
             token = session.get("csrf_token")
             sent = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
@@ -81,6 +87,7 @@ def create_app(start_background: bool = True) -> Flask:
         return response
 
     from .views.dashboard import bp as dashboard_bp
+    from .views.filesend import bp as filesend_bp
     from .views.settings import bp as settings_bp
     from .views.setup import bp as setup_bp
     from .views.urlsend import bp as urlsend_bp
@@ -88,6 +95,7 @@ def create_app(start_background: bool = True) -> Flask:
     app.register_blueprint(setup_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(urlsend_bp)
+    app.register_blueprint(filesend_bp)
     app.register_blueprint(settings_bp)
 
     return app

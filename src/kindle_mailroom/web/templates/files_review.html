@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Review files · Kindle Mailroom{% endblock %}
+{% block content %}
+<h1>Review before sending</h1>
+<form method="post" action="{{ url_for('filesend.send') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="stage_id" value="{{ stage_id }}">
+  {% if include_gmail %}<input type="hidden" name="include_gmail" value="1">{% endif %}
+  <div class="card">
+    <p class="muted">
+      {{ files|length }} file(s) ready. Uncheck anything you don't want sent.
+      Files already sent before start unchecked.
+      {% if include_gmail %}Emails labeled “{{ config.source_label }}” will be sent in the same batch.{% endif %}
+    </p>
+    <table>
+      <tr><th></th><th>Title</th><th>File</th><th>Size</th></tr>
+      {% for f in files %}
+      <tr>
+        <td><input type="checkbox" name="stored" value="{{ f.stored }}" {% if f.sha256 not in duplicates %}checked{% endif %}></td>
+        <td class="subject" title="{{ f.title }}">{{ f.title }}{% if f.sha256 in duplicates %} <span class="muted">(already sent)</span>{% endif %}</td>
+        <td class="subject muted" title="{{ f.name }}">{{ f.name }}</td>
+        <td class="muted">{{ '%.1f' % (f.size / 1048576) }} MB</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <button type="submit" {% if job_busy %}disabled{% endif %}>Send selected</button>
+    <a class="btn secondary" href="{{ url_for('filesend.form') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
