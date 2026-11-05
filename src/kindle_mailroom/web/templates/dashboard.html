@@ -9,7 +9,11 @@
     <p>
       Google:
       {% if auth_ok %}<span class="badge badge-ok">connected</span> <span class="muted">{{ config.gmail_address }}</span>
-      {% else %}<span class="badge badge-err">not connected</span> <span class="muted">{{ auth_message }}</span>{% endif %}
+      {% else %}<span class="badge badge-err">not connected</span> <span class="muted">{{ auth_message }}</span>
+        <a class="btn secondary" href="{{ url_for('setup.oauth_start') }}" target="_blank" rel="noopener">
+          Your Google account is disconnected. Reconnect Google account
+        </a>
+      {% endif %}
     </p>
     <p>Kindle: <strong>{{ config.kindle_email }}</strong></p>
     <p>Watching label: <strong>{{ config.source_label }}</strong>
@@ -26,10 +30,13 @@
   <div class="card">
     <h2 style="margin-top:0">Send to Kindle</h2>
     <p class="muted">Sends {% if config.unread_only %}unread {% endif %}emails labeled “{{ config.source_label }}”.</p>
+    <form method="post" action="{{ url_for('dashboard.send_now') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" {% if job_busy %}disabled{% endif %}>Send</button>
+    </form>
     <a class="btn" href="{{ url_for('dashboard.send_review') }}"
        {% if job_busy %}aria-disabled="true" onclick="return false;"{% endif %}>Review &amp; send</a>
-    <p class="hint">Shows what would be sent first, so you can uncheck anything —
-      everything's included by default.</p>
+    <p class="hint">Send delivers everything in the watched label. Review &amp; send lets you uncheck items first.</p>
     <form method="post" action="{{ url_for('dashboard.send_test') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <button type="submit" class="secondary" {% if job_busy %}disabled{% endif %}>Send a test document</button>

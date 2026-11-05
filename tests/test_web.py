@@ -101,6 +101,33 @@ def test_dashboard_renders_when_configured(client):
     assert b"me@kindle.com" in resp.data
 
 
+def test_dashboard_offers_google_reconnect_when_disconnected(client, monkeypatch):
+    complete_setup()
+    from kindle_mailroom.web.views import dashboard
+
+    monkeypatch.setattr(
+        dashboard, "_auth_status", lambda: (False, "Stored Google token is invalid.")
+    )
+    resp = client.get("/", base_url="http://localhost:8377")
+
+    assert resp.status_code == 200
+    assert b"Your Google account is disconnected" in resp.data
+    assert b"Reconnect Google account" in resp.data
+    assert b'href="/setup/oauth"' in resp.data
+
+
+def test_dashboard_makes_send_the_default_action(client):
+    complete_setup()
+
+    resp = client.get("/", base_url="http://localhost:8377")
+
+    assert resp.status_code == 200
+    body = resp.data.decode()
+    assert 'action="/send"' in body
+    assert ">Send</button>" in body
+    assert "Review &amp; send" in body
+
+
 def test_history_and_url_pages_render(client):
     complete_setup()
     for path in ("/history", "/url", "/settings"):

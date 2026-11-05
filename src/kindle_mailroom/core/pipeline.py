@@ -7,11 +7,13 @@ runner can stream to the browser. Nothing here reads stdin.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Callable
 
 from ..config import Config, epub_dir
 from . import gmail_client as gc
 from .epub_build import make_safe_filename, message_to_epub, messages_to_digest_epub, url_to_epub
+from .epub_upload import StagedFile
 from .models import GmailMessage, SendReport, digest_title, group_messages_by_sender_week
 from .sanitize import count_words
 from .store import Store, now_iso
@@ -33,6 +35,7 @@ def send_labelled(
     limit: int | None = None,
     unread_only: bool | None = None,
     message_ids: set[str] | None = None,
+    batch_id: str | None = None,
     progress: ProgressFn = print,
 ) -> SendReport:
     """Send emails carrying the source label to the Kindle address.
@@ -52,7 +55,7 @@ def send_labelled(
     if message_ids is not None:
         messages = [m for m in messages if m.message_id in message_ids]
         progress(f"{len(messages)} selected for sending")
-    batch_id = now_iso()
+    batch_id = batch_id or now_iso()
     if use_digest:
         return _send_digest_mode(service, store, config, messages, batch_id,
                                  dry_run=dry_run, resend=resend, progress=progress)
@@ -203,6 +206,46 @@ def send_urls(
     return report
 
 
+def send_files(
+    service,
+    store: Store,
+    config: Config,
+    stage_dir: Path,
+    files: list[StagedFile],
+    *,
+    batch_id: str | None = None,
+    resend_duplicates: bool = False,
+    progress: ProgressFn = print,
+) -> SendReport:
+    """Send staged EPUB uploads to the Kindle address, byte for byte.
+
+    Files whose content hash was already sent are skipped unless
+    resend_duplicates is set (the review screen lets the user opt in)."""
+    report = SendReport()
+    batch_id = batch_id or now_iso()
+    for staged in files:
+        path = stage_dir / staged.stored
+        try:
+            if store.already_sent(staged.message_id) and not resend_duplicates:
+                progress(f"skip (already sent): {staged.name}")
+                report.skipped += 1
+                continue
+            filename = f"{make_safe_filename(staged.title, 'Book')}.epub"
+            gmail_id = gc.send_epub_to_kindle(service, path, staged.title,
+                                              config.gmail_address, config.kindle_email,
+                                              attachment_filename=filename)
+            store.record_file_sent(staged.message_id, staged.title, staged.name, path,
+                                   config.kindle_email, gmail_id, batch_id=batch_id)
+            report.sent += 1
+            progress(f"sent: {staged.title} ({staged.name})")
+            time.sleep(config.send_delay)
+        except Exception as exc:
+            report.errors.append(f"{staged.name}: {exc}")
+            progress(f"  ERROR {staged.name}: {exc}")
+    progress(f"done: {report.summary()}")
+    return report
+
+
 def restore_sent(service, store: Store, config: Config, progress: ProgressFn = print) -> int:
     """Move sent messages back to the source label so they can be resent."""
     source_label_id = gc.ensure_label(service, config.source_label)
@@ -211,7 +254,7 @@ def restore_sent(service, store: Store, config: Config, progress: ProgressFn = p
     rows = store.sent_message_ids()
     restored = 0
     for message_id, subject in rows:
-        if message_id.startswith("url:"):
+        if message_id.startswith(("url:", "file:")):
             continue
         try:
             gc.restore_message(service, message_id, source_label_id, sent_label_id)

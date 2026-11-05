@@ -136,6 +136,22 @@ class Store:
         )
         self.conn.commit()
 
+    def record_file_sent(self, file_id: str, title: str, filename: str, epub_path: Path,
+                         kindle_email: str, gmail_id: str, batch_id: str | None = None) -> None:
+        """Record an EPUB the user uploaded from their device. file_id is
+        "file:<sha256>", so re-uploading identical bytes is detectable."""
+        self.conn.execute(
+            """
+            insert or replace into deliveries
+              (gmail_message_id, thread_id, subject, sender, gmail_date,
+               status, epub_path, sent_at, kindle_email, sender_domain, batch_id)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (file_id, gmail_id, title, filename, None, "sent", str(epub_path),
+             now_iso(), kindle_email, "upload", batch_id),
+        )
+        self.conn.commit()
+
     def list_deliveries(self, limit: int = 200) -> list[dict]:
         rows = self.conn.execute(
             """
