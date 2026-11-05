@@ -28,6 +28,9 @@ GOLDEN_DIR = Path(__file__).parent / "golden"
 _VOLATILE_PATTERNS = [
     (re.compile(r'(<meta property="dcterms:modified">)[^<]*(</meta>)'), r"\1REDACTED\2"),
     (re.compile(r'(<dc:identifier[^>]*>)urn:uuid:[0-9a-f-]+(</dc:identifier>)'), r"\1REDACTED-UUID\2"),
+    # ebooklib stamps its own version into the OPF; a library bump is not a
+    # formatting change.
+    (re.compile(r'(<meta content=")Ebook-lib [0-9.]+(" name="generator"/>)'), r"\1Ebook-lib REDACTED\2"),
     # url_to_epub stamps today's fetch date into visible article metadata
     # (epub_build.py's "Source: ... · YYYY-MM-DD" line) - redact any bare
     # ISO date so the golden file doesn't rot one day after it's recorded.

@@ -11,7 +11,7 @@ FILES:
 <package xmlns="http://www.idpf.org/2007/opf" prefix="rendition: http://www.idpf.org/vocab/rendition/#" unique-identifier="id" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
     <meta property="dcterms:modified">REDACTED</meta>
-    <meta content="Ebook-lib 0.20.0" name="generator"/>
+    <meta content="Ebook-lib REDACTED" name="generator"/>
     <dc:identifier id="id">gmail-m1</dc:identifier>
     <dc:title>Six Levels Deep</dc:title>
     <dc:language>en</dc:language>
