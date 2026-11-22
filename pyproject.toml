@@ -8,7 +8,7 @@ version = "1.0.1"
 description = "Send labeled Gmail newsletters and web articles to your Kindle as clean EPUBs."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.11"
+requires-python = ">=3.11.5"
 authors = [{ name = "Kindle Mailroom contributors" }]
 keywords = ["kindle", "gmail", "newsletter", "epub", "send-to-kindle"]
 classifiers = [
@@ -34,10 +34,17 @@ dependencies = [
     # JPEG/FlashPix decoding, certifi 2026.10.19 drops the compromised emSign
     # roots, urllib3 2.8 fixes HTTPS-proxy and chunked-read flaws, werkzeug
     # 3.1.9 fixes safe_join on Windows device names.
+    # Nov 2026: oauthlib 4.0.1 rejects a device-code token request that does
+    # not present a real device code (CVE-2026-49272). soupsieve 4.1.3 is the
+    # current release that includes the selector-parser denial-of-service
+    # fixes (CVE-2026-126190, CVE-2026-126191, CVE-2026-126192,
+    # CVE-2026-126193). Patched soupsieve needs Python 3.11.5+.
     "Pillow>=13.0.0",
     "certifi>=2026.10.19",
     "urllib3>=2.8.0",
     "werkzeug>=3.1.9",
+    "oauthlib>=4.0.1",
+    "soupsieve>=4.1.3",
     "requests>=2.31",
     "flask>=3.0",
     "platformdirs>=4.0",

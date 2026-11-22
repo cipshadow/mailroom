@@ -11,7 +11,7 @@ updates:
     open-pull-requests-limit: 5
     groups:
       security-floor:
-        patterns: ["pillow", "certifi", "urllib3", "werkzeug", "cryptography", "oauthlib", "requests"]
+        patterns: ["pillow", "certifi", "urllib3", "werkzeug", "cryptography", "oauthlib", "soupsieve", "requests"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
