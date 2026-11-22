@@ -8,7 +8,7 @@ your Kindle. It runs entirely on your own machine: no server, no account, no
 middleman.
 
 **Requirements:** a Mac with Apple silicon or a Windows PC for the desktop
-app (nothing else to install), or Python 3.11 or newer to run it from the
+app (nothing else to install), or Python 3.11.5 or newer to run it from the
 command line. The command-line version also runs on Linux.
 
 ![The Kindle Mailroom dashboard](docs/images/dashboard.png)
@@ -60,7 +60,7 @@ and logs live, how to quit, and why there's no auto-update.
 
 ### Or: the command line (all platforms, including Linux)
 
-Requires **Python 3.11 or newer**.
+Requires **Python 3.11.5 or newer**.
 
 ```bash
 pipx install git+https://github.com/cipshadow/mailroom@v1.0.0

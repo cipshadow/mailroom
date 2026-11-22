@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- Updated bundled dependencies: oauthlib 4.0.0 → 4.0.1 (rejects a device-code
+  token request that does not present a real device code, CVE-2026-49272) and
+  soupsieve 2.9.1 → 4.1.3 (fixes selector-parser denial-of-service bugs,
+  including CVE-2026-126190 and CVE-2026-126191).
+- **Python 3.11.5 or newer is required** (was 3.11). Every soupsieve release
+  that includes those fixes requires 3.11.5.
+
 ## [1.0.1] — 2026-10-28
 
 Security release. **v1.0.0 is superseded; please upgrade.** The v1.0.0 desktop
